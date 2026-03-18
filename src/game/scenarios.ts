@@ -186,17 +186,17 @@ export const SCENARIOS: Scenario[] = [
     description: 'Score 1500+ pts — need 90 pts to open',
     icon: '💎',
     instructions:
-      'Your team has accumulated 1,500+ points, so your initial meld requirement has increased to 90 points. You hold: A♠ A♦ K♠ K♦ K♣ Q♠ Q♦ Q♣ J♠ J♦ 2♠ (wild) 2♣ (wild).\n\nAces = 20 pts, Kings/Queens/Jacks = 10 pts, Wilds = 0 pts for meld threshold purposes (but counted as the card they replace).',
+      'Your team has accumulated 1,500+ points, so your initial meld requirement has increased to 90 points. You hold: A♠ A♦ A♣ K♠ K♦ K♣ Q♠ Q♦ Q♣ J♠ J♦ 2♠ (wild) 2♣ (wild).\n\nAces = 20 pts each, Kings/Queens/Jacks = 10 pts each. Wild cards do not count toward the meld threshold — only the natural card values are used to check the 90-point minimum.',
     question: 'Which combination of cards meets the 90-point opening requirement?',
     options: [
       { text: 'Three Kings (K♠ K♦ K♣) = 30 pts — not enough' },
-      { text: 'Two Aces + one wild (A♠ A♦ 2♠) = 40 pts — not enough' },
       { text: 'Three Queens + three Jacks = 60 pts — not enough' },
-      { text: 'Two Aces + two wilds + three Kings (A♠ A♦ 2♠ 2♣ K♠ K♦ K♣) = 70 pts natural + wilds replacing Aces — still only 70 pts naturally' },
+      { text: 'Two Aces + one wild (A♠ A♦ 2♠) = 40 pts natural — not enough' },
+      { text: 'Three Aces + three Kings (A♠ A♦ A♣ K♠ K♦ K♣) = 90 pts — exactly meets the requirement' },
     ],
     correctIndex: 3,
     explanation:
-      'This is a trick question — none of the listed combos clearly reach 90 pts without deeper counting. To reach 90 pts you need at least 5 Aces (100 pts) or combine Aces with Kings: e.g., 3 Aces (60) + 3 Kings (30) = 90 pts. Always count natural card values only when checking the meld threshold; wild cards count as the replaced card\'s value for scoring but not for the threshold calculation.',
+      'Three Aces (3 × 20 = 60 pts) plus three Kings (3 × 10 = 30 pts) totals exactly 90 pts in natural card values, meeting the 90-point threshold. Wild cards do not count toward the threshold calculation, so options using wilds to pad the count are not valid for checking the minimum.',
   },
 ]
 
