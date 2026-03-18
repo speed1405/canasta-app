@@ -341,7 +341,7 @@ export function GameBoard({ onExit }: Props) {
                 colour="emerald"
               />
               <ActionButton
-                label={selectedMeldTarget ? `Add to ${selectedMeldTarget.playerId === 'human' ? 'Meld' : 'Meld'}` : 'Add to Meld'}
+                label={selectedMeldTarget ? `Add to Meld (${selectedMeldTarget.playerId})` : 'Add to Meld'}
                 onClick={handleAddToMeld}
                 disabled={!canAddToMeld}
                 colour="teal"

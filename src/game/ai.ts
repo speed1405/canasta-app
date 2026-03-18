@@ -124,7 +124,7 @@ function getMeldOrDiscardAction(
 }
 
 /** Try going out: has canasta and can discard last card or hand is empty. */
-function tryGoOut(state: GameState, player: Player): AIAction | null {
+function tryGoOut(_state: GameState, player: Player): AIAction | null {
   if (!canGoOut(player)) return null
   if (player.hand.length === 0) return { type: 'goOut', discardCardId: null }
   if (player.hand.length === 1) {
