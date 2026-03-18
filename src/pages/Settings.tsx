@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
+import { useAuth } from '../auth/AuthContext'
+import { saveCloudPreferences, loadCloudPreferences } from '../auth/cloudSync'
 
 type AnimSpeed = 'off' | 'normal' | 'fast'
 type Theme = 'system' | 'light' | 'dark'
@@ -28,9 +31,25 @@ function savePrefs(prefs: Preferences): void {
 
 export function Settings() {
   const [prefs, setPrefs] = useState<Preferences>(loadPrefs)
+  const { currentUser } = useAuth()
+
+  // Load cloud preferences when a user signs in
+  useEffect(() => {
+    if (!currentUser) return
+    loadCloudPreferences(currentUser).then((cloudPrefs) => {
+      if (cloudPrefs) {
+        const merged = { ...loadPrefs(), ...cloudPrefs } as Preferences
+        setPrefs(merged)
+        savePrefs(merged)
+      }
+    }).catch(() => { /* ignore */ })
+  }, [currentUser])
 
   useEffect(() => {
     savePrefs(prefs)
+    if (currentUser) {
+      saveCloudPreferences(currentUser, prefs as unknown as Record<string, unknown>).catch(() => { /* ignore */ })
+    }
     // Apply theme
     const root = document.documentElement
     root.classList.remove('light', 'dark')
@@ -40,7 +59,7 @@ export function Settings() {
     // Apply animation speed as a CSS custom property
     const speedMap: Record<AnimSpeed, string> = { off: '0ms', normal: '300ms', fast: '100ms' }
     root.style.setProperty('--anim-speed', speedMap[prefs.animSpeed])
-  }, [prefs])
+  }, [prefs, currentUser])
 
   function update<K extends keyof Preferences>(key: K, value: Preferences[K]) {
     setPrefs((p) => ({ ...p, [key]: value }))
@@ -118,6 +137,55 @@ export function Settings() {
               )
             })}
           </div>
+        </section>
+
+        {/* Account */}
+        <section aria-labelledby="account-label">
+          <h2 id="account-label" className="text-lg font-bold mb-4">Account</h2>
+          {currentUser ? (
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-700">
+              <div className="p-4 flex items-center gap-3">
+                <span className="text-xl" aria-hidden="true">✅</span>
+                <div>
+                  <div className="font-semibold text-sm">Signed in</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs">
+                    {currentUser.email}
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 text-sm text-slate-500 dark:text-slate-400">
+                Your stats, progress, and preferences are synced across devices.
+              </div>
+              <div className="p-4 flex flex-col gap-2">
+                <Link
+                  to="/profile"
+                  className="block text-center py-2 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-semibold transition-colors"
+                >
+                  View Profile
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Sign in to sync your stats, lesson progress, and practice results across devices.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Link
+                  to="/login"
+                  className="block text-center py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="block text-center py-2 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-semibold transition-colors"
+                >
+                  Create Account
+                </Link>
+              </div>
+            </div>
+          )}
         </section>
       </div>
     </PageLayout>

@@ -8,6 +8,17 @@ interface ChangelogEntry {
 
 const ENTRIES: ChangelogEntry[] = [
   {
+    version: '1.2.0',
+    date: 'March 2026',
+    changes: [
+      '☁️ New: Cloud accounts — register or sign in with email/Google to sync your stats, lessons, and practice progress across devices',
+      '👤 New Profile page — manage your display name, view account details, and sign out',
+      '🔄 Guest-to-account merge — your local progress is automatically uploaded when you create an account',
+      '🗑 Delete My Account — remove all your cloud data at any time from your Profile page',
+      '🔒 Privacy Policy page added',
+    ],
+  },
+  {
     version: '1.1.0',
     date: 'March 2026',
     changes: [

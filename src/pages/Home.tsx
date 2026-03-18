@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Onboarding, isOnboardingDone } from '../components/Onboarding'
 import { ChangelogModal } from '../components/ChangelogModal'
 import { shouldShowChangelog } from '../game/changelogVersion'
+import { useAuth } from '../auth/AuthContext'
 
 const NAV_ITEMS = [
   { label: 'Learn', route: '/learn', icon: '📖', description: 'Interactive lessons for every Canasta rule' },
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
 export function Home() {
   const [showOnboarding, setShowOnboarding] = useState(() => !isOnboardingDone())
   const [showChangelog, setShowChangelog] = useState(() => isOnboardingDone() && shouldShowChangelog())
+  const { currentUser } = useAuth()
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
@@ -32,6 +34,29 @@ export function Home() {
           <div className="text-6xl mb-4" aria-hidden="true">🃏</div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-3">Canasta</h1>
           <p className="text-slate-300 text-lg">Learn, practice, and master the classic card game</p>
+
+          {/* Account area */}
+          <div className="mt-4">
+            {currentUser ? (
+              <Link
+                to="/profile"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-medium transition-colors"
+                aria-label="View your profile"
+              >
+                <span aria-hidden="true">👤</span>
+                {currentUser.displayName ?? currentUser.email ?? 'Profile'}
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-medium transition-colors"
+                aria-label="Sign in to sync your progress"
+              >
+                <span aria-hidden="true">🔑</span>
+                Sign In
+              </Link>
+            )}
+          </div>
         </header>
 
         {/* Navigation grid */}
