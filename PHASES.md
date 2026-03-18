@@ -2,6 +2,12 @@
 
 This document describes the step-by-step delivery roadmap for the Canasta training application.
 Each phase builds on the previous one and produces working, shippable software.
+The roadmap is split across three versions:
+
+- **v1 (Phases 1–6)** — core single-player training app, shipped in ~10 weeks.
+- **v2 (Phases 7–10)** — post-launch iteration, user accounts, team play, and online
+  multiplayer.
+- **v3 (Phases 11–12)** — advanced AI, tournaments, and community/social features.
 
 For the full project specification — including data structures, AI behaviour, design targets, and
 testing strategy — see [PLAN.md](./PLAN.md).
@@ -10,14 +16,20 @@ testing strategy — see [PLAN.md](./PLAN.md).
 
 ## Phase Overview
 
-| Phase | Name | Weeks | Key Deliverable |
-|---|---|---|---|
-| 1 | Foundation | 1–2 | Project scaffold + all game-logic modules + core UI primitives |
-| 2 | Play Mode | 3–5 | Fully playable 2-player and 3-player games vs. AI |
-| 3 | Learn Mode | 6–7 | Interactive lessons covering every Canasta rule |
-| 4 | Practice Mode | 8 | Curated scenario drills with progress tracking |
-| 5 | Reference & Polish | 9 | Rules cheat sheet, statistics, settings, PWA, and accessibility |
-| 6 | Deploy & Harden | 10 | CI/CD, performance optimisation, and final QA |
+| Phase | Version | Name | Weeks | Key Deliverable |
+|---|---|---|---|---|
+| 1 | v1 | Foundation | 1–2 | Project scaffold + all game-logic modules + core UI primitives |
+| 2 | v1 | Play Mode | 3–5 | Fully playable 2-player and 3-player games vs. AI |
+| 3 | v1 | Learn Mode | 6–7 | Interactive lessons covering every Canasta rule |
+| 4 | v1 | Practice Mode | 8 | Curated scenario drills with progress tracking |
+| 5 | v1 | Reference & Polish | 9 | Rules cheat sheet, statistics, settings, PWA, and accessibility |
+| 6 | v1 | Deploy & Harden | 10 | CI/CD, performance optimisation, and final QA |
+| 7 | v1.x | Post-Launch Iteration | 11–12 | Real-world bug fixes, UX improvements, content expansion |
+| 8 | v2 | User Accounts & Cloud Sync | 13–16 | Auth, cloud-saved stats, cross-device sync, profile page |
+| 9 | v2 | Partnership / Team Canasta | 17–21 | 4-player (2 vs. 2) variant with team AI and team scoring |
+| 10 | v2 | Online Multiplayer | 22–27 | Real-time game rooms, matchmaking, reconnect, in-game chat |
+| 11 | v3 | Advanced AI & Tournaments | 28–33 | ML/neural-net AI, tournament brackets, global leaderboards |
+| 12 | v3 | Community & Social | 34–38 | Friends, game replays, achievements, custom card themes |
 
 ---
 
@@ -276,14 +288,286 @@ clean bill of health from final QA.
 
 ---
 
-## Out of Scope for v1
+## Phase 7 — Post-Launch Iteration (Weeks 11–12)
 
-The following features are intentionally deferred to a future version:
+**Goal:** respond to real-world usage by fixing production bugs, polishing UX pain points,
+and expanding content based on user feedback gathered after the v1 launch.
 
-- Real-time multiplayer (online play).
-- User accounts / login system.
-- Partnership / Team Canasta (4-player, 2 vs. 2).
-- Machine-learning or neural-network AI.
+### Tasks
 
-These will be revisited once the core single-player experience is solid and user feedback has
-been gathered.
+**Monitoring & bug fixes**
+- [ ] Integrate an error-reporting service (e.g., Sentry) to capture uncaught exceptions in
+  production.
+- [ ] Monitor Core Web Vitals via the production deployment dashboard; investigate any
+  regressions introduced by real traffic patterns.
+- [ ] Triage and fix all P1/P2 bugs reported by users within 48 hours of report.
+- [ ] Release patch versions (`v1.0.x`) as needed.
+
+**UX improvements**
+- [ ] Review session-recording or user-feedback data; identify the top 5 usability friction
+  points and address them.
+- [ ] Improve onboarding flow based on drop-off metrics (e.g., clearer call-to-action on the
+  home screen, skip button for returning players).
+- [ ] Add a "What's new" changelog modal that appears once after each app update.
+- [ ] Improve accessibility of any elements flagged by real users with assistive technologies.
+
+**Content expansion**
+- [ ] Add at least 5 new Practice Mode scenario drills based on common mistakes observed
+  in Play Mode game data.
+- [ ] Add a "Tips & Strategy" section to the Reference screen covering intermediate-level
+  tactics (e.g., when to freeze the pile, optimal discard selection).
+- [ ] Localise the app into at least one additional language (i18n framework in place from
+  this phase onward).
+
+### Exit Criteria
+
+- Zero P1 open bugs; no more than 3 P2 open bugs.
+- Error-reporting dashboard active and alerting on new exception spikes.
+- At least 5 new Practice drills live.
+- "Tips & Strategy" section published in the Reference screen.
+
+---
+
+## Phase 8 — User Accounts & Cloud Sync (v2, Weeks 13–16)
+
+**Goal:** give players a persistent identity so their statistics, lesson progress, and
+preferences follow them across devices and browsers.
+
+### Tasks
+
+**Auth system**
+- [ ] Choose and integrate an auth provider (Firebase Auth or Supabase Auth recommended):
+  - Email/password registration and login.
+  - "Sign in with Google" OAuth.
+  - Password reset via email.
+- [ ] Add auth-aware routing: unauthenticated users can still play as a guest but are
+  prompted to sign in to enable cloud sync.
+- [ ] Implement a profile page (`/profile`): display name, avatar (Gravatar fallback),
+  account creation date.
+
+**Cloud storage**
+- [ ] Migrate `stats.ts` to write game records to the cloud (Firestore or Supabase
+  `postgres` table) when the user is signed in; fall back to `localStorage` for guests.
+- [ ] Sync lesson progress and practice-drill results to the cloud per user.
+- [ ] Sync Settings preferences to the cloud so they apply on any device.
+- [ ] Provide a merge strategy for when a guest converts to a signed-in account
+  (local records are uploaded and merged with any existing cloud records).
+
+**Privacy & data management**
+- [ ] Add a "Delete my account" flow in Settings (deletes cloud data and account).
+- [ ] Ensure all cloud data is scoped per user and not readable by other users (security
+  rules / row-level security).
+- [ ] Update the Privacy Policy and display it during registration.
+
+### Exit Criteria
+
+- A user can register, log in on a second device, and see their game history and lesson
+  progress without any manual export/import.
+- Guest play continues to work without an account.
+- "Delete my account" removes all cloud data within 24 hours.
+- Firestore / Supabase security rules audited; no cross-user data leaks.
+
+---
+
+## Phase 9 — Partnership / Team Canasta (v2, Weeks 17–21)
+
+**Goal:** add the 4-player (2 vs. 2 partnership) variant of Canasta, which is the most common
+form of the game worldwide.
+
+### Tasks
+
+**Game logic**
+- [ ] Extend `GameVariant` to include `'4-player-partnership'`.
+- [ ] Implement partnership-specific rules in `rules.ts`:
+  - Partners sit opposite each other; turn order is player 0 → 1 → 2 → 3.
+  - Partners share a common set of melds (cards melded by either partner are added to
+    the shared table area).
+  - A player may not go out without their partner's permission if the partner has melded
+    fewer than 2 canastas (ask-permission rule).
+  - Scoring is calculated per team, not per individual.
+- [ ] Update `scoring.ts` to aggregate scores at the team level.
+- [ ] Update `deck.ts` to deal 11 cards per player (4-player partnership standard).
+- [ ] Implement partner AI strategy in `ai.ts`: a cooperative strategy that considers the
+  partner's visible melds when choosing draws and discards.
+- [ ] Write unit tests for all partnership rule variants.
+
+**UI**
+- [ ] Build a 4-player `GameBoard` layout: human and AI partner sit at top/bottom;
+  opponents sit left/right.
+- [ ] Shared meld zone clearly labelled per team.
+- [ ] "Ask partner" dialog: prompt the human to request permission to go out; AI partner
+  responds based on its current hand evaluation.
+- [ ] Team score display in round-end and game-over screens.
+- [ ] Add `'4-player-partnership'` option to the new-game screen variant selector.
+
+### Exit Criteria
+
+- A full multi-round 4-player partnership match can be played to completion without errors.
+- Partnership-specific rules (shared melds, ask-permission) are correctly enforced.
+- Team scoring produces correct totals across rounds.
+- AI partners cooperate visibly (e.g., complete each other's melds).
+
+---
+
+## Phase 10 — Online Multiplayer (v2, Weeks 22–27)
+
+**Goal:** let players compete against real humans in real time using any of the supported
+game variants.
+
+### Tasks
+
+**Backend / infrastructure**
+- [ ] Provision a real-time backend (e.g., Firebase Realtime Database, Supabase Realtime,
+  or a custom WebSocket server on Fly.io).
+- [ ] Design a room/game-session data model:
+  - Room: `id`, `variant`, `hostId`, `players[]`, `status` (waiting / in-progress / finished).
+  - All game state changes broadcast to every player in the room via subscriptions.
+- [ ] Implement server-side game-action validation (mirror of `rules.ts`) to prevent
+  cheating via client-side manipulation.
+
+**Matchmaking & lobby**
+- [ ] Build a lobby screen (`/lobby`):
+  - "Create room" — generates a shareable 6-character invite code.
+  - "Join room" — enter an invite code to join a friend's room.
+  - "Quick match" — join a random public room for the selected variant and difficulty
+    (AI fills empty seats if no opponent is found within 30 seconds).
+- [ ] Show a waiting room while other players join; display each player's display name and
+  ready status.
+- [ ] Allow the host to start the game once all seats are filled.
+
+**In-game multiplayer**
+- [ ] Replace AI turns with real-time remote player turns; display a "Waiting for
+  [player name]…" indicator with a turn timer (60 seconds; auto-discard on timeout).
+- [ ] Implement in-game text chat (profanity filter applied).
+- [ ] Handle player disconnection: show a reconnection countdown (2 minutes); if the
+  player does not reconnect, an AI takes over for the remainder of the match.
+- [ ] Spectator mode: allow signed-in users to watch an in-progress public game without
+  interacting.
+
+**Post-game**
+- [ ] Save multiplayer game records to the cloud and credit wins/losses to each player's
+  profile.
+- [ ] Show a post-game summary with rematch option.
+
+### Exit Criteria
+
+- Two players on separate devices can complete a full 2-player multiplayer match without
+  desync.
+- 4-player partnership multiplayer works with 4 human players.
+- Turn timer auto-discards correctly on timeout.
+- Disconnection and reconnection handled gracefully; AI takeover activates after 2 minutes.
+- Server-side rule validation rejects illegal actions sent from a modified client.
+
+---
+
+## Phase 11 — Advanced AI & Tournaments (v3, Weeks 28–33)
+
+**Goal:** elevate the AI to near-human competitive strength using machine learning and
+introduce a structured tournament experience.
+
+### Tasks
+
+**Machine-learning AI**
+- [ ] Collect a training dataset from Expert-level self-play games (at least 100,000
+  complete games).
+- [ ] Train a neural-network policy/value model (e.g., a small transformer or LSTM) to
+  predict optimal draw, meld, and discard decisions.
+- [ ] Integrate the model as a new `'neural'` difficulty level in `ai.ts`; serve inference
+  via a WebAssembly (WASM) build of ONNX Runtime so it runs entirely in the browser.
+- [ ] Benchmark the neural AI win rate against Expert rule-based AI; target ≥ 60% win rate.
+- [ ] Allow human players to select the "Neural" difficulty on the new-game screen.
+
+**Tournament mode**
+- [ ] Design a tournament data model: `Tournament` (id, variant, format, rounds, players[],
+  bracket/standings).
+- [ ] Implement two tournament formats:
+  - **Round-robin** — every player faces every other player once; winner has the most
+    points after all matches.
+  - **Single-elimination bracket** — players are seeded; losers are eliminated each round.
+- [ ] Build the tournament lobby (`/tournaments`): create, browse, and join open tournaments.
+- [ ] Build the bracket/standings view: live-updating results as matches complete.
+- [ ] Integrate tournament results with player profiles and global leaderboards.
+
+**Global leaderboards**
+- [ ] Build the leaderboards screen (`/leaderboards`):
+  - Overall ranking by Elo-style rating (updated after each multiplayer or tournament
+    match).
+  - Separate leaderboards per variant (2-player individual, 3-player individual,
+    4-player partnership).
+  - Friends leaderboard (shows only friends' rankings).
+- [ ] Implement the Elo rating system in the backend; update ratings at match completion.
+
+### Exit Criteria
+
+- Neural AI WASM bundle loads in < 500 ms on a mid-range mobile device.
+- Neural AI achieves ≥ 60% win rate against the rule-based Expert AI in automated
+  benchmark games.
+- A 4-player round-robin tournament runs to completion and produces a correct final
+  standings table.
+- Global leaderboard updates reflect new match results within 60 seconds.
+
+---
+
+## Phase 12 — Community & Social Features (v3, Weeks 34–38)
+
+**Goal:** build the social layer that turns the app from a solo training tool into a living
+community for Canasta enthusiasts.
+
+### Tasks
+
+**Friends system**
+- [ ] Implement friend requests: send by username or shareable link; accept/decline.
+- [ ] Friends list on the profile page with online/in-game status indicators.
+- [ ] "Challenge a friend" shortcut: creates a private multiplayer room pre-filled with
+  the friend's user ID.
+- [ ] Push notifications (web push) for friend requests and game invitations.
+
+**Game replays**
+- [ ] Record the full action log of every multiplayer and AI game to the cloud.
+- [ ] Build a replay viewer (`/replay/:gameId`): step through turns forward and backward;
+  display each player's hand, melds, and discard-pile state at every point in the game.
+- [ ] Allow players to share a replay link publicly or with friends only.
+- [ ] Add optional AI commentary in the replay viewer: highlight turning-point moments and
+  explain why the optimal move differs from the one played.
+
+**Achievements**
+- [ ] Design an achievement system with at least 30 achievements, covering:
+  - Milestones (first win, 10 wins, 100 wins, first canasta, first concealed go-out, etc.).
+  - Skill-based (win against Expert AI, win a match without the hint button, complete all
+    lessons, complete all practice drills, etc.).
+  - Social (play with 3 different friends, win a tournament, etc.).
+- [ ] Display earned achievements on the profile page with unlock date.
+- [ ] Show an achievement-earned toast notification in-game at the moment of unlock.
+
+**Custom card themes**
+- [ ] Implement a card theme system: card back designs and face-card illustration styles
+  can be swapped via a theme pack.
+- [ ] Ship at least 3 built-in themes (Classic, Minimalist, and one festive theme).
+- [ ] Allow community-contributed themes submitted as pull requests (SVG card sheet +
+  `theme.json` manifest).
+
+**Daily & weekly challenges**
+- [ ] Generate a "Daily challenge" scenario automatically each day (seeded from the date
+  so every player plays the same hand).
+- [ ] Publish weekly strategy challenge: a complex hand where players compete for the
+  highest score.
+- [ ] Display a global challenge leaderboard for the current day/week.
+
+### Exit Criteria
+
+- Friend request, accept, and challenge flow works end-to-end between two test accounts.
+- A complete AI game replay can be stepped through without errors or desync.
+- At least 30 achievements implemented; achievement toast fires at correct game events.
+- Three built-in card themes selectable in Settings; theme persists across sessions.
+- Daily challenge is unique per calendar day and identical for all players.
+
+---
+
+## Out of Scope (beyond v3)
+
+The following ideas are noted for future consideration but have no committed timeline:
+
+- Native mobile apps (iOS / Android) via React Native or Capacitor.
+- Offline multiplayer via Bluetooth or local Wi-Fi (peer-to-peer).
+- Paid DLC card theme packs or cosmetic items.
+- Live-streamed tournament broadcasts with commentator audio.
