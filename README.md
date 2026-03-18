@@ -2,7 +2,7 @@
 
 An interactive **Canasta training application** that runs in the browser and works on mobile, tablet, and desktop.
 
-## Features planned
+## Features
 
 - **Learn** — step-by-step interactive lessons covering every Canasta rule, with quizzes and mini-exercises.
 - **Practice** — curated scenario drills with immediate feedback (melding, picking up the pile, going out, scoring, and more).
@@ -14,6 +14,36 @@ An interactive **Canasta training application** that runs in the browser and wor
 ## Tech stack
 
 React · TypeScript · Vite · Tailwind CSS · Zustand · Vitest · vite-plugin-pwa
+
+## Getting started
+
+```bash
+npm install
+npm run dev        # start dev server on http://localhost:5173
+npm test           # run unit tests (Vitest)
+npm run build      # production build
+```
+
+## Project structure
+
+```
+src/
+  game/            # Pure TypeScript game-logic modules (no UI dependency)
+    types.ts       # Card, Meld, Player, GameState types and helpers
+    deck.ts        # Deck creation, shuffle, and dealing
+    hand.ts        # Hand management (sort, add, remove, penalty)
+    meld.ts        # Meld validation, scoring, and canasta detection
+    pile.ts        # Discard pile rules (freeze, block, pick-up)
+    scoring.ts     # Round and match score calculation
+    rules.ts       # Action validation (draw, pick-up pile, meld, discard, go-out)
+    stats.ts       # Game history stored in localStorage
+  components/
+    Card/          # Playing card component (accessible, responsive)
+    Hand/          # Hand layout (scrollable fan, tap-to-select)
+    Onboarding/    # First-run onboarding flow (4 slides)
+  pages/           # Route-level page components
+  router/          # react-router-dom routing configuration
+```
 
 ## Documentation
 
