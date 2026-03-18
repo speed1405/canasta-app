@@ -9,7 +9,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
+      workbox: {
+        // Pre-cache all JS/CSS chunks so all routes load instantly on repeat visits
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+        // Cache the app shell for all navigations (SPA fallback)
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+      },
       manifest: {
         name: 'Canasta Training App',
         short_name: 'Canasta',

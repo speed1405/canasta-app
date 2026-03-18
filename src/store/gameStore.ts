@@ -210,7 +210,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       handleRoundEnd(newState, set)
       return
     }
-    hasNewCanasta(gameState, newState) ? playCanasta() : playMeld()
+    if (hasNewCanasta(gameState, newState)) { playCanasta() } else { playMeld() }
     set({ gameState: newState, selectedCardIds: new Set(), lastError: '', hint: '' })
   },
 
@@ -237,7 +237,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       handleRoundEnd(newState, set)
       return
     }
-    hasNewCanasta(gameState, newState) ? playCanasta() : playMeld()
+    if (hasNewCanasta(gameState, newState)) { playCanasta() } else { playMeld() }
     set({ gameState: newState, selectedCardIds: new Set(), lastError: '', hint: '' })
   },
 

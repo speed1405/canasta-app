@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { SCENARIOS } from '../game/scenarios'
-import { getScenarioResults, type ScenarioResult } from '../game/practiceProgress'
+import { getScenarioResults } from '../game/practiceProgress'
 
 export function PracticeList() {
-  const [results, setResults] = useState<Record<string, ScenarioResult>>({})
-
-  useEffect(() => {
-    setResults(getScenarioResults())
-  }, [])
+  const [results] = useState(() => getScenarioResults())
 
   const passedCount = SCENARIOS.filter((s) => results[s.id]?.passed).length
   const progressPct = Math.round((passedCount / SCENARIOS.length) * 100)

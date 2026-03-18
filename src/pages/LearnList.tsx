@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { LESSONS } from '../game/lessons'
 import { getCompletedLessons } from '../game/learnProgress'
 
 export function LearnList() {
-  const [completed, setCompleted] = useState<Set<string>>(new Set())
-
-  useEffect(() => {
-    setCompleted(getCompletedLessons())
-  }, [])
+  const [completed] = useState(() => getCompletedLessons())
 
   const completedCount = LESSONS.filter((l) => completed.has(l.id)).length
   const progressPct = Math.round((completedCount / LESSONS.length) * 100)

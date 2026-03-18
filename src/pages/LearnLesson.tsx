@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { LESSONS, getLessonById } from '../game/lessons'
@@ -19,15 +19,17 @@ export function LearnLesson() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [answered, setAnswered] = useState(false)
 
-  // Completion state
-  const [alreadyComplete, setAlreadyComplete] = useState(false)
+  // Derived: check localStorage directly so no stale state
+  const alreadyComplete = lesson ? isLessonComplete(lesson.id) : false
 
-  useEffect(() => {
-    if (lesson) setAlreadyComplete(isLessonComplete(lesson.id))
+  // Reset per-lesson UI state when the lesson changes (React recommended pattern)
+  const [prevLessonId, setPrevLessonId] = useState(lessonId)
+  if (prevLessonId !== lessonId) {
+    setPrevLessonId(lessonId)
     setStepIndex(0)
     setSelectedOption(null)
     setAnswered(false)
-  }, [lesson])
+  }
 
   if (!lesson) {
     return (
@@ -65,7 +67,6 @@ export function LearnLesson() {
     setAnswered(true)
     if (optionIndex === lesson.quiz.correctIndex) {
       markLessonComplete(lesson.id)
-      setAlreadyComplete(true)
     }
   }
 
