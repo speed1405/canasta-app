@@ -62,7 +62,7 @@ Topics to cover:
   - **Red 3s**: immediately placed face-up on the table when drawn or dealt; a replacement card is drawn. Each red 3 is worth 100 pts (all four together double to 800 pts). If a player holds all four they score 800 pts instead of 400 pts. Red 3s score against you if you have not completed any meld by end of round.
   - **Black 3s**: may only be discarded; they cannot be melded except in a going-out play with three or four black 3s and no wild cards. Discarding a black 3 **blocks** the pile for one turn only (the next player cannot pick it up). Note: a **frozen** pile is a different concept — the pile becomes permanently frozen for the round when a wild card is discarded onto it. Black 3s left in hand at end of round count as **−5 pts each** against your score.
 - Minimum initial meld requirement (based on your current score): below 0 pts → 15 pts; 0–1,499 pts → 50 pts; 1,500–2,999 pts → 90 pts; 3,000+ pts → 120 pts.
-- Going out: a player may go out only when they have **at least 2 completed canastas** and can legally meld or discard their last card. Going out scores a bonus of +100 pts (or +200 pts for going out concealed — melding the entire hand at once without having previously melded).
+- Going out: a player may go out when they can legally meld or discard their last card. Going out scores a bonus of +100 pts (or +200 pts for going out concealed — melding the entire hand at once without having previously melded).
 - Scoring rules (card point values, canasta bonuses, going-out bonus, red-3 bonuses/penalties).
 
 Each lesson has:
@@ -89,13 +89,11 @@ A complete **individual** (human vs. AI) game of Canasta with turn-by-turn guida
 **2-player individual rules in effect:**
 - Each player is dealt **15 cards** at the start.
 - On your turn, draw **2 cards** from the stock (or pick up the discard pile instead); then discard 1 card.
-- Each player needs **2 completed canastas** (in their own melds) to be eligible to go out.
 - Going-out bonus: +100 pts (or +200 pts for a concealed go-out).
 
 **3-player individual rules in effect:**
 - Each player is dealt **13 cards** at the start.
 - On your turn, draw **2 cards** from the stock (or pick up the discard pile instead); then discard 1 card.
-- Each player needs **2 completed canastas** (in their own melds) to be eligible to go out.
 - Going-out bonus: +100 pts (or +200 pts for a concealed go-out).
 - All other rules (meld validation, freezing the pile, red/black 3s, scoring) are identical to the 2-player variant.
 
@@ -115,7 +113,7 @@ A searchable, offline-available cheat sheet covering:
 - Card point values for cards in melds and hand at end of round: Joker = 50, Ace/2 = 20, 8–K = 10, 4–7 = 5. (Note: 3s cannot be melded normally — red 3s are bonus/penalty cards worth 100 pts each; black 3s score 5 pts against you if left in hand.)
 - Canasta values: natural canasta = 500 pts, mixed canasta = 300 pts.
 - End-of-round bonuses and penalties (going-out bonus, red-3 bonuses/penalties).
-- Going-out conditions (2 canastas required per player).
+- Going-out conditions: player may go out when they can legally meld or discard their last card.
 - 2-player individual-play specifics: 15-card deal, 2-card draw.
 - 3-player individual-play specifics: 13-card deal, 2-card draw; all other scoring rules identical to 2-player.
 
@@ -181,7 +179,6 @@ interface PlayerState {
 
 // Individual-play game state (2-player or 3-player variant).
 // Each player draws 2 cards from stock per turn (or picks up the pile) then discards 1.
-// Each player needs 2 completed canastas to be eligible to go out.
 // 2-player: index 0 = human, index 1 = AI.
 // 3-player: index 0 = human, index 1 = AI #1, index 2 = AI #2.
 interface GameState {
