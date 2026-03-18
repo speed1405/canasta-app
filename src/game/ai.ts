@@ -1,5 +1,5 @@
 import type { GameState, AIDifficulty, Card, Player, Variant } from './types'
-import { isWild, isRed3, isBlack3, cardPointValue } from './types'
+import { isWild, isRed3, isBlack3, cardPointValue, partnerIndex } from './types'
 import { canAddToMeld, meldPointValue } from './meld'
 import { validatePickUpPile, validateNewMeld } from './rules'
 import { canGoOut } from './scoring'
@@ -16,14 +16,17 @@ export type AIAction =
 // ─── Public entry point ───────────────────────────────────────────────────────
 
 export function getAIAction(state: GameState, difficulty: AIDifficulty): AIAction {
-  const player = state.players[state.currentPlayerIndex]
+  const playerIndex = state.currentPlayerIndex
+  const player = state.players[playerIndex]
+  const isPartnership = state.variant === '4p-partnership'
+  const partner = isPartnership ? state.players[partnerIndex(playerIndex)] : undefined
 
   if (state.phase === 'draw') {
-    return getDrawAction(state, player, difficulty)
+    return getDrawAction(state, player, difficulty, partner)
   }
 
   // meld phase (or any non-draw phase except end)
-  return getMeldOrDiscardAction(state, player, difficulty)
+  return getMeldOrDiscardAction(state, player, difficulty, partner)
 }
 
 // ─── Draw phase ───────────────────────────────────────────────────────────────
@@ -32,11 +35,12 @@ function getDrawAction(
   state: GameState,
   player: Player,
   difficulty: AIDifficulty,
+  partner?: Player,
 ): AIAction {
   const pileAllowed =
     state.pile.cards.length > 0 &&
     !state.pile.blockedOneTurn &&
-    validatePickUpPile(state.pile, player.hand, player.melds).ok
+    validatePickUpPile(state.pile, player.hand, player.melds, partner?.melds).ok
 
   switch (difficulty) {
     case 'beginner':
@@ -49,7 +53,7 @@ function getDrawAction(
       return { type: 'drawStock' }
 
     case 'medium': {
-      if (pileAllowed && isPileWorthTaking(state, player, 4)) {
+      if (pileAllowed && isPileWorthTaking(state, player, 4, partner)) {
         return { type: 'pickUpPile' }
       }
       return { type: 'drawStock' }
@@ -57,7 +61,7 @@ function getDrawAction(
 
     case 'hard':
     case 'expert': {
-      if (pileAllowed && isPileWorthTaking(state, player, 3)) {
+      if (pileAllowed && isPileWorthTaking(state, player, 3, partner)) {
         return { type: 'pickUpPile' }
       }
       return { type: 'drawStock' }
@@ -70,12 +74,14 @@ function isPileWorthTaking(
   state: GameState,
   player: Player,
   minCards: number,
+  partner?: Player,
 ): boolean {
   if (state.pile.cards.length < minCards) return false
   const top = topCard(state.pile)
   if (!top) return false
-  // Has an existing meld of the top rank — definitely useful
-  if (player.melds.some(m => m.rank === top.rank)) return true
+  // Has an existing meld of the top rank (own or partner's) — definitely useful
+  const allMelds = partner ? [...player.melds, ...partner.melds] : player.melds
+  if (allMelds.some(m => m.rank === top.rank)) return true
   // Has 2+ cards matching top rank in hand
   const matching = player.hand.filter(
     c => !isWild(c) && !isRed3(c) && !isBlack3(c) && c.rank === top.rank,
@@ -89,10 +95,11 @@ function getMeldOrDiscardAction(
   state: GameState,
   player: Player,
   difficulty: AIDifficulty,
+  partner?: Player,
 ): AIAction {
-  // If hand is empty and has canasta → go out without discarding
+  // If hand is empty and team has canasta → go out without discarding
   if (player.hand.length === 0) {
-    if (canGoOut(player)) return { type: 'goOut', discardCardId: null }
+    if (canGoOut(player, partner?.melds)) return { type: 'goOut', discardCardId: null }
     // Shouldn't happen, but fall through to discard
   }
 
@@ -103,19 +110,20 @@ function getMeldOrDiscardAction(
 
   // Try to go out if eligible (medium / hard / expert)
   if (difficulty !== 'beginner' && difficulty !== 'easy') {
-    const goOutAction = tryGoOut(state, player)
+    const goOutAction = tryGoOut(state, player, partner)
     if (goOutAction) return goOutAction
   }
 
   // Attempt to add cards to existing melds first (all difficulties except beginner)
   if (difficulty !== 'beginner') {
-    const addAction = findBestAddToMeld(player)
+    // In partnership: also try to add to partner's melds (cooperative strategy)
+    const addAction = findBestAddToMeld(player, partner)
     if (addAction) return addAction
   }
 
   // Attempt to place a new meld (easy+)
   if (difficulty !== 'beginner') {
-    const newMeldAction = findBestNewMeld(player, state.variant)
+    const newMeldAction = findBestNewMeld(player, state.variant, partner)
     if (newMeldAction) return newMeldAction
   }
 
@@ -124,8 +132,8 @@ function getMeldOrDiscardAction(
 }
 
 /** Try going out: has canasta and can discard last card or hand is empty. */
-function tryGoOut(_state: GameState, player: Player): AIAction | null {
-  if (!canGoOut(player)) return null
+function tryGoOut(_state: GameState, player: Player, partner?: Player): AIAction | null {
+  if (!canGoOut(player, partner?.melds)) return null
   if (player.hand.length === 0) return { type: 'goOut', discardCardId: null }
   if (player.hand.length === 1) {
     const card = player.hand[0]
@@ -139,11 +147,14 @@ function tryGoOut(_state: GameState, player: Player): AIAction | null {
 /**
  * Find the best new meld the AI can place (returns placeMeld action or null).
  * Prefers natural melds (no wilds) and high-value ranks.
+ * In partnership mode, won't start a meld for a rank partner already has.
  */
-function findBestNewMeld(player: Player, variant: Variant): AIAction | null {
+function findBestNewMeld(player: Player, variant: Variant, partner?: Player): AIAction | null {
   const hand = player.hand
   const wilds = hand.filter(isWild)
-  const existingRanks = new Set(player.melds.map(m => m.rank))
+  // In partnership, avoid starting melds for ranks partner already has (add to theirs instead)
+  const partnerMeldRanks = new Set(partner?.melds.map(m => m.rank) ?? [])
+  const existingRanks = new Set([...player.melds.map(m => m.rank), ...partnerMeldRanks])
 
   // Group naturals by rank
   const rankGroups = new Map<string, Card[]>()
@@ -163,7 +174,7 @@ function findBestNewMeld(player: Player, variant: Variant): AIAction | null {
     // Pure natural meld (3+ naturals)
     if (cards.length >= 3) {
       const chosen = cards.slice(0, 3)
-      const result = validateNewMeld(chosen, player, variant)
+      const result = validateNewMeld(chosen, player, variant, partner?.hasOpenedMelds)
       if (result.ok) {
         candidates.push({
           cardIds: chosen.map(c => c.id),
@@ -175,7 +186,7 @@ function findBestNewMeld(player: Player, variant: Variant): AIAction | null {
     // 2 naturals + 1 wild
     if (cards.length >= 2 && wilds.length >= 1) {
       const chosen = [...cards.slice(0, 2), wilds[0]]
-      const result = validateNewMeld(chosen, player, variant)
+      const result = validateNewMeld(chosen, player, variant, partner?.hasOpenedMelds)
       if (result.ok) {
         candidates.push({
           cardIds: chosen.map(c => c.id),
@@ -200,23 +211,39 @@ function findBestNewMeld(player: Player, variant: Variant): AIAction | null {
 /**
  * Find the best add-to-meld action for the AI.
  * Prioritises completing canastas (melds with 6 cards → 7).
+ * In partnership mode, also considers adding to partner's melds.
  */
-function findBestAddToMeld(player: Player): AIAction | null {
+function findBestAddToMeld(player: Player, partner?: Player): AIAction | null {
   const hand = player.hand
-  if (player.melds.length === 0) return null
 
-  type Candidate = { cardId: string; meldIndex: number; priority: number }
+  type Candidate = { cardId: string; meldIndex: number; priority: number; ownerId: string }
   const candidates: Candidate[] = []
 
+  // Check own melds
   for (let i = 0; i < player.melds.length; i++) {
     const meld = player.melds[i]
     const meldSize = meld.naturals.length + meld.wilds.length
 
     for (const card of hand) {
       if (canAddToMeld(meld, card)) {
-        // Higher priority for melds closer to becoming a canasta
         const priority = meldSize >= 6 ? 100 : meldSize >= 4 ? 50 : 10
-        candidates.push({ cardId: card.id, meldIndex: i, priority })
+        candidates.push({ cardId: card.id, meldIndex: i, priority, ownerId: player.id })
+      }
+    }
+  }
+
+  // In partnership: also check partner's melds (higher priority — cooperative play)
+  if (partner) {
+    for (let i = 0; i < partner.melds.length; i++) {
+      const meld = partner.melds[i]
+      const meldSize = meld.naturals.length + meld.wilds.length
+
+      for (const card of hand) {
+        if (canAddToMeld(meld, card)) {
+          // Boost priority for partner's melds near canasta (cooperative strategy)
+          const priority = meldSize >= 6 ? 120 : meldSize >= 4 ? 60 : 15
+          candidates.push({ cardId: card.id, meldIndex: i, priority, ownerId: partner.id })
+        }
       }
     }
   }
@@ -228,7 +255,7 @@ function findBestAddToMeld(player: Player): AIAction | null {
     type: 'addToMeld',
     cardIds: [candidates[0].cardId],
     meldIndex: candidates[0].meldIndex,
-    playerId: player.id,
+    playerId: candidates[0].ownerId,
   }
 }
 

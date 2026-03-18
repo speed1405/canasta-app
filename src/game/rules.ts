@@ -35,13 +35,14 @@ export function validateDrawFromStock(stock: Card[]): RuleResult {
  * 2. If the pile is frozen, the player must hold two natural cards matching
  *    the top card.
  * 3. If the pile is not frozen, the player must either:
- *    a. Already have an open meld of the top card's rank, OR
+ *    a. Already have an open meld of the top card's rank (own or partner), OR
  *    b. Be able to form a new 3-card meld using the top card + 2 from hand.
  */
 export function validatePickUpPile(
   pile: PileState,
   playerHand: Card[],
   playerMelds: Meld[],
+  partnerMelds?: Meld[],
 ): RuleResult {
   if (pile.cards.length === 0) return fail('The discard pile is empty.')
   if (pile.blockedOneTurn)
@@ -65,8 +66,9 @@ export function validatePickUpPile(
     return ok()
   }
 
-  // Not frozen: check if player can use the top card
-  const existingMeld = playerMelds.find((m) => m.rank === top.rank)
+  // Not frozen: check if player (or partner in partnership) has existing meld of top rank
+  const allMelds = partnerMelds ? [...playerMelds, ...partnerMelds] : playerMelds
+  const existingMeld = allMelds.find((m) => m.rank === top.rank)
   if (existingMeld) return ok()
 
   // Can they form a new meld with top card + 2 from hand?
@@ -90,13 +92,14 @@ export function validatePickUpPile(
  * Validate placing a new meld from the player's hand.
  *
  * - Cards must form a valid meld.
- * - If the player hasn't yet opened melds, the meld must meet the minimum
- *   initial meld requirement.
+ * - If neither the player nor their partner (in partnership mode) has opened melds,
+ *   the meld must meet the minimum initial meld requirement.
  */
 export function validateNewMeld(
   cards: Card[],
   player: Player,
   _variant: Variant,
+  partnerHasOpenedMelds?: boolean,
 ): RuleResult {
   if (!isMeldValid(cards)) {
     return fail(
@@ -104,7 +107,8 @@ export function validateNewMeld(
     )
   }
 
-  if (!player.hasOpenedMelds) {
+  const teamHasOpened = player.hasOpenedMelds || (partnerHasOpenedMelds ?? false)
+  if (!teamHasOpened) {
     const points = meldPointValue(cards)
     const required = minimumMeldPoints(player.score)
     if (points < required) {

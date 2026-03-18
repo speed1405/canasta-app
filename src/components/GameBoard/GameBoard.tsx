@@ -4,6 +4,7 @@ import { Card } from '../Card'
 import { RoundEndModal } from './RoundEndModal'
 import { useGameStore } from '../../store/gameStore'
 import type { Player } from '../../game/types'
+import { partnerIndex, teamIndex } from '../../game/types'
 
 interface Props {
   onExit: () => void
@@ -98,6 +99,7 @@ export function GameBoard({ onExit }: Props) {
     hint,
     lastError,
     roundEndData,
+    partnerPermissionPending,
     selectCard,
     deselectAll,
     drawFromStock,
@@ -107,6 +109,7 @@ export function GameBoard({ onExit }: Props) {
     discardSelected,
     requestHint,
     acknowledgeRoundEnd,
+    respondPartnerPermission,
   } = useGameStore()
 
   const [selectedMeldTarget, setSelectedMeldTarget] = useState<MeldTarget | null>(null)
@@ -120,11 +123,19 @@ export function GameBoard({ onExit }: Props) {
   }
 
   const humanPlayer = gameState.players.find(p => p.id === 'human')!
+  const humanIndex = gameState.players.findIndex(p => p.id === 'human')
+  const isPartnership = gameState.variant === '4p-partnership'
   const aiPlayers = gameState.players.filter(p => p.type === 'ai')
   const currentPlayer = gameState.players[gameState.currentPlayerIndex]
   const isHumanTurn = currentPlayer.id === 'human'
   const phase = gameState.phase
   const topDiscard = gameState.pile.cards[gameState.pile.cards.length - 1] ?? null
+
+  // Partnership-specific: partner and opponents
+  const partnerPlayer = isPartnership ? gameState.players[partnerIndex(humanIndex)] : null
+  const opponentPlayers = isPartnership
+    ? gameState.players.filter((_, i) => teamIndex(i) !== teamIndex(humanIndex))
+    : aiPlayers
 
   const canDraw = isHumanTurn && phase === 'draw' && gameState.stock.length > 0
   const canPickUp =
@@ -174,22 +185,50 @@ export function GameBoard({ onExit }: Props) {
         </button>
         <span className="font-semibold text-green-200">
           Round {roundNum} · {difficulty}
+          {isPartnership && ' · Partnership'}
         </span>
         <span className="text-xs text-green-400">
           {isHumanTurn ? '🟢 Your turn' : `⏳ ${currentPlayer.name}`}
         </span>
       </div>
 
-      {/* ── AI area ──────────────────────────────────────────────────── */}
+      {/* ── Player area (AI players / opponents + partner) ──────────── */}
       <div className="shrink-0 px-2 pt-2 pb-1 space-y-2 max-h-[40vh] overflow-y-auto">
-        {aiPlayers.map(ai => (
+        {/* Partnership: show partner first (top, highlighted as teammate) */}
+        {isPartnership && partnerPlayer && (
+          <div className="bg-blue-900/40 rounded-xl p-2 border border-blue-700/40">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-semibold text-blue-300">
+                🤝 {partnerPlayer.name} (Your Partner)
+              </span>
+              <span className="text-xs text-slate-400">
+                Hand: {partnerPlayer.hand.length}
+              </span>
+              {currentPlayer.id === partnerPlayer.id && (
+                <span className="text-xs bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded-full">
+                  Thinking…
+                </span>
+              )}
+            </div>
+            <Hand cards={partnerPlayer.hand} faceDown label={`${partnerPlayer.name} hand`} />
+            <MeldStrip
+              player={partnerPlayer}
+              isCurrentPlayer={isHumanTurn && phase === 'meld'}
+              selectedTarget={selectedMeldTarget}
+              onMeldClick={handleMeldClick}
+            />
+          </div>
+        )}
+
+        {/* Opponents (and all AI in non-partnership) */}
+        {(isPartnership ? opponentPlayers : aiPlayers).map(ai => (
           <div key={ai.id} className="bg-green-900/40 rounded-xl p-2">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-semibold text-green-300">
                 {ai.name}
               </span>
               <span className="text-xs text-slate-400">
-                Score: {ai.score} · Hand: {ai.hand.length}
+                {isPartnership ? `Hand: ${ai.hand.length}` : `Score: ${ai.score} · Hand: ${ai.hand.length}`}
               </span>
               {currentPlayer.id === ai.id && (
                 <span className="text-xs bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded-full">
@@ -208,6 +247,18 @@ export function GameBoard({ onExit }: Props) {
             />
           </div>
         ))}
+
+        {/* Partnership: team score summary */}
+        {isPartnership && (
+          <div className="flex gap-2 text-xs">
+            <span className="bg-blue-900/40 rounded-lg px-2 py-1 text-blue-200">
+              🤝 Your Team: {humanPlayer.score} pts
+            </span>
+            <span className="bg-red-900/40 rounded-lg px-2 py-1 text-red-200">
+              ⚔️ Opponents: {gameState.players[1].score} pts
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── Centre: stock + discard ───────────────────────────────────── */}
@@ -286,7 +337,7 @@ export function GameBoard({ onExit }: Props) {
           <span className="text-xs font-semibold text-green-300">
             Your melds
           </span>
-          <span className="text-xs text-slate-400">Score: {humanPlayer.score}</span>
+          {!isPartnership && <span className="text-xs text-slate-400">Score: {humanPlayer.score}</span>}
           {selectedMeldTarget?.playerId === 'human' && (
             <span className="text-xs bg-yellow-400/20 text-yellow-300 px-1.5 py-0.5 rounded-full">
               Meld targeted
@@ -369,6 +420,38 @@ export function GameBoard({ onExit }: Props) {
             disabled={false}
             colour="violet"
           />
+        </div>
+      )}
+
+      {/* ── Ask Partner permission dialog (partnership only) ─────────── */}
+      {partnerPermissionPending && partnerPlayer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden">
+            <div className="bg-blue-800 px-6 py-4 text-center">
+              <h2 className="text-xl font-bold text-white">Ask Partner Permission</h2>
+              <p className="mt-1 text-blue-200 text-sm">
+                You want to go out. Ask {partnerPlayer.name} for permission?
+              </p>
+            </div>
+            <div className="px-6 py-4 text-sm text-slate-700">
+              <p>Your partner has {partnerPlayer.melds.filter(m => m.naturals.length + m.wilds.length >= 7).length} canasta(s).</p>
+              <p className="mt-1 text-slate-500">The AI partner will evaluate whether going out helps the team.</p>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => respondPartnerPermission(false)}
+                className="flex-1 rounded-xl bg-slate-200 px-4 py-3 text-slate-700 font-semibold hover:bg-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => respondPartnerPermission(true)}
+                className="flex-1 rounded-xl bg-blue-700 px-4 py-3 text-white font-bold hover:bg-blue-600 transition-colors"
+              >
+                Ask Partner →
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

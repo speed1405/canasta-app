@@ -6,7 +6,7 @@ import type {
   Card,
   GamePhase,
 } from './types'
-import { isRed3, isWild, isBlack3, minimumMeldPoints } from './types'
+import { isRed3, isWild, isBlack3, minimumMeldPoints, partnerIndex, teamIndex } from './types'
 import { dealHands, drawFromStock } from './deck'
 import { addCards, removeCards, sortHand } from './hand'
 import { buildMeld, addToMeld, canAddToMeld } from './meld'
@@ -16,7 +16,7 @@ import {
   pickUpPile as pickUpPileFromPile,
   beginTurn,
 } from './pile'
-import { calculateRoundScore, canGoOut } from './scoring'
+import { calculateRoundScore, calculatePartnershipTeamScore, canGoOut } from './scoring'
 import {
   validateDrawFromStock,
   validatePickUpPile,
@@ -25,6 +25,18 @@ import {
   validateDiscard,
 } from './rules'
 
+// ─── Partnership helpers ──────────────────────────────────────────────────────
+
+function isPartnership(variant: Variant): boolean {
+  return variant === '4p-partnership'
+}
+
+/** Get the partner player for the player at `playerIndex` (partnership only). */
+function getPartner(state: GameState, playerIndex: number): Player | undefined {
+  if (!isPartnership(state.variant)) return undefined
+  return state.players[partnerIndex(playerIndex)]
+}
+
 // ─── initGame ─────────────────────────────────────────────────────────────────
 
 export function initGame(
@@ -32,6 +44,8 @@ export function initGame(
   difficulty: AIDifficulty,
   numPlayers: number,
 ): { state: GameState; difficulty: AIDifficulty } {
+  const partnership = isPartnership(variant)
+
   const players: Player[] = [
     {
       id: 'human',
@@ -46,9 +60,11 @@ export function initGame(
   ]
 
   for (let i = 1; i < numPlayers; i++) {
+    // In partnership: player 2 is the human's partner; players 1 and 3 are opponents
+    const isPartner = partnership && i === 2
     players.push({
       id: `ai-${i}`,
-      name: `AI ${i}`,
+      name: isPartner ? 'Partner' : `Opponent ${partnership ? i === 1 ? 1 : 2 : i}`,
       type: 'ai',
       hand: [],
       melds: [],
@@ -151,8 +167,9 @@ export function applyDrawFromStock(state: GameState): GameState {
 export function applyPickUpPile(state: GameState): GameState {
   const playerIndex = state.currentPlayerIndex
   const player = state.players[playerIndex]
+  const partner = getPartner(state, playerIndex)
 
-  const result = validatePickUpPile(state.pile, player.hand, player.melds)
+  const result = validatePickUpPile(state.pile, player.hand, player.melds, partner?.melds)
   if (!result.ok) return state
 
   const { taken, newPile } = pickUpPileFromPile(state.pile)
@@ -184,7 +201,7 @@ export function applyPlaceMeld(
 
   if (cards.length !== cardIds.length) return state
 
-  const result = validateNewMeld(cards, player, state.variant)
+  const result = validateNewMeld(cards, player, state.variant, getPartner(state, playerIndex)?.hasOpenedMelds)
   if (!result.ok) return state
 
   const newMeld = buildMeld(cards)
@@ -202,7 +219,8 @@ export function applyPlaceMeld(
   const nextState = { ...state, players }
 
   // Check if player went out by melding all cards
-  if (updatedPlayer.hand.length === 0 && canGoOut(updatedPlayer)) {
+  const partner = getPartner(nextState, playerIndex)
+  if (updatedPlayer.hand.length === 0 && canGoOut(updatedPlayer, partner?.melds)) {
     return { ...nextState, phase: 'end' }
   }
 
@@ -211,25 +229,43 @@ export function applyPlaceMeld(
 
 // ─── applyAddToMeld ───────────────────────────────────────────────────────────
 
+/**
+ * Add cards from the CURRENT player's hand to a meld owned by `meldOwnerId`.
+ * In partnership mode, `meldOwnerId` may be the current player or their partner.
+ */
 export function applyAddToMeld(
   state: GameState,
-  playerId: string,
+  meldOwnerId: string,
   cardIds: string[],
   meldIndex: number,
 ): GameState {
-  const playerIndex = state.players.findIndex(p => p.id === playerId)
-  if (playerIndex === -1) return state
+  const currentPlayerIndex = state.currentPlayerIndex
+  const currentPlayer = state.players[currentPlayerIndex]
 
-  const player = state.players[playerIndex]
-  if (meldIndex < 0 || meldIndex >= player.melds.length) return state
+  // Find the meld owner (may be current player or partner)
+  const meldOwnerIndex = state.players.findIndex(p => p.id === meldOwnerId)
+  if (meldOwnerIndex === -1) return state
 
+  // In partnership, only the current player or their partner can own the target meld
+  if (isPartnership(state.variant)) {
+    const expectedPartnerIdx = partnerIndex(currentPlayerIndex)
+    if (meldOwnerIndex !== currentPlayerIndex && meldOwnerIndex !== expectedPartnerIdx) return state
+  } else {
+    // Non-partnership: can only add to own melds
+    if (meldOwnerIndex !== currentPlayerIndex) return state
+  }
+
+  const meldOwner = state.players[meldOwnerIndex]
+  if (meldIndex < 0 || meldIndex >= meldOwner.melds.length) return state
+
+  // Cards come from the CURRENT player's hand
   const cards = cardIds
-    .map(id => player.hand.find(c => c.id === id))
+    .map(id => currentPlayer.hand.find(c => c.id === id))
     .filter((c): c is Card => c !== undefined)
 
   if (cards.length !== cardIds.length) return state
 
-  const meld = player.melds[meldIndex]
+  const meld = meldOwner.melds[meldIndex]
   const result = validateAddToMeld(cards, meld)
   if (!result.ok) return state
 
@@ -238,23 +274,30 @@ export function applyAddToMeld(
     updatedMeld = addToMeld(updatedMeld, card)
   }
 
-  const updatedMelds = player.melds.map((m, i) =>
-    i === meldIndex ? updatedMeld : m,
-  )
-  const updatedHand = removeCards(player.hand, cardIds)
-  const updatedPlayer: Player = {
-    ...player,
-    hand: updatedHand,
-    melds: updatedMelds,
-  }
-  const players = state.players.map((p, i) =>
-    i === playerIndex ? updatedPlayer : p,
-  )
+  // Build updated player objects — handle the case where current player owns the meld
+  const updatedHand = removeCards(currentPlayer.hand, cardIds)
+  const updatedMeldsList = meldOwner.melds.map((m, i) => i === meldIndex ? updatedMeld : m)
+
+  const players = state.players.map((p, i) => {
+    if (i === currentPlayerIndex && i === meldOwnerIndex) {
+      // Same player: update both hand and melds
+      return { ...p, hand: updatedHand, melds: updatedMeldsList }
+    }
+    if (i === meldOwnerIndex) {
+      return { ...p, melds: updatedMeldsList }
+    }
+    if (i === currentPlayerIndex) {
+      return { ...p, hand: updatedHand }
+    }
+    return p
+  })
 
   const nextState = { ...state, players }
 
-  // Check if player went out by adding last cards to a meld
-  if (updatedPlayer.hand.length === 0 && canGoOut(updatedPlayer)) {
+  // Check if current player went out by adding last cards to a meld
+  const updatedCurrentPlayer = players[currentPlayerIndex]
+  const partner3 = getPartner(nextState, currentPlayerIndex)
+  if (updatedCurrentPlayer.hand.length === 0 && canGoOut(updatedCurrentPlayer, partner3?.melds)) {
     return { ...nextState, phase: 'end' }
   }
 
@@ -286,8 +329,9 @@ export function applyDiscard(
     i === playerIndex ? updatedPlayer : p,
   )
 
-  // Check going out: hand empty AND has canasta
-  const wentOut = updatedHand.length === 0 && canGoOut(updatedPlayer)
+  // Check going out: hand empty AND has canasta (with partner melds for partnership)
+  const partnerForCheck = getPartner({ ...state, players }, playerIndex)
+  const wentOut = updatedHand.length === 0 && canGoOut(updatedPlayer, partnerForCheck?.melds)
 
   if (wentOut) {
     return {
@@ -332,20 +376,40 @@ export function applyEndRound(
   )
 
   const roundScoreEntry: Record<string, number> = {}
+  let players: Player[]
 
-  let players = state.players.map(player => {
-    const wentOut = player.id === goingOutPlayerId
-    const wentOutConcealed = wentOut && !player.hasOpenedMelds
-    const details = calculateRoundScore(player, {
-      wentOut,
-      wentOutConcealed,
-      totalRed3Count,
+  if (isPartnership(state.variant)) {
+    // Partnership: score is calculated per team, then applied to both partners
+    const team0Score = calculatePartnershipTeamScore(
+      state.players[0], state.players[2],
+      { goingOutPlayerId, totalRed3Count },
+    )
+    const team1Score = calculatePartnershipTeamScore(
+      state.players[1], state.players[3],
+      { goingOutPlayerId, totalRed3Count },
+    )
+
+    players = state.players.map((player, i) => {
+      const teamScore = teamIndex(i) === 0 ? team0Score.total : team1Score.total
+      roundScoreEntry[player.id] = teamScore
+      return { ...player, score: player.score + teamScore }
     })
-    roundScoreEntry[player.id] = details.total
-    return { ...player, score: player.score + details.total }
-  })
+  } else {
+    players = state.players.map(player => {
+      const wentOut = player.id === goingOutPlayerId
+      const wentOutConcealed = wentOut && !player.hasOpenedMelds
+      const details = calculateRoundScore(player, {
+        wentOut,
+        wentOutConcealed,
+        totalRed3Count,
+      })
+      roundScoreEntry[player.id] = details.total
+      return { ...player, score: player.score + details.total }
+    })
+  }
 
   const roundScores = [...state.roundScores, roundScoreEntry]
+  // Partnership: match over when a team's score >= 5000 (both team members have same score)
   const matchOver = players.some(p => p.score >= 5000)
 
   if (matchOver) {
@@ -404,11 +468,13 @@ export function applyEndRound(
 // ─── getHint ─────────────────────────────────────────────────────────────────
 
 export function getHint(state: GameState): string {
-  const player = state.players[state.currentPlayerIndex]
+  const playerIndex = state.currentPlayerIndex
+  const player = state.players[playerIndex]
+  const partner = getPartner(state, playerIndex)
 
   if (state.phase === 'draw') {
     if (state.pile.cards.length > 0 && !state.pile.blockedOneTurn) {
-      const result = validatePickUpPile(state.pile, player.hand, player.melds)
+      const result = validatePickUpPile(state.pile, player.hand, player.melds, partner?.melds)
       if (result.ok && state.pile.cards.length >= 5) {
         return `Pick up the pile (${state.pile.cards.length} cards) to gain a big advantage!`
       }
@@ -420,17 +486,20 @@ export function getHint(state: GameState): string {
   }
 
   if (state.phase === 'meld') {
-    if (canGoOut(player) && player.hand.length <= 2) {
-      return 'You have a canasta — consider going out by discarding your last card!'
+    if (canGoOut(player, partner?.melds) && player.hand.length <= 2) {
+      return isPartnership(state.variant)
+        ? 'Your team has 2 canastas — consider going out!'
+        : 'You have a canasta — consider going out by discarding your last card!'
     }
 
-    // Check for near-canasta melds
-    for (const meld of player.melds) {
+    // Check for near-canasta melds (own and partner's in partnership)
+    const allMelds = partner ? [...player.melds, ...partner.melds] : player.melds
+    for (const meld of allMelds) {
       const size = meld.naturals.length + meld.wilds.length
       if (size >= 6) {
         const canAdd = player.hand.some(c => canAddToMeld(meld, c))
         if (canAdd) {
-          return `Add one more card to your ${meld.rank} meld to complete a canasta!`
+          return `Add one more card to the ${meld.rank} meld to complete a canasta!`
         }
       }
     }
@@ -448,7 +517,8 @@ export function getHint(state: GameState): string {
       }
     }
 
-    if (!player.hasOpenedMelds) {
+    const teamHasOpened = player.hasOpenedMelds || (partner?.hasOpenedMelds ?? false)
+    if (!teamHasOpened) {
       const minPts = minimumMeldPoints(player.score)
       return `You need at least ${minPts} points to open your first meld (score: ${player.score}).`
     }
