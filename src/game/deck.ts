@@ -1,4 +1,5 @@
 import type { Card, Rank, Suit, Variant } from './types'
+import { dealSize } from './types'
 
 const SUITS: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades']
 const RANKS: Rank[] = [
@@ -66,10 +67,10 @@ export interface DealResult {
 
 /**
  * Shuffle the deck and deal `numPlayers` hands of the size specified by the
- * variant (15 cards for 2-player, 13 cards for 3-player).
+ * variant (15 cards for 2-player, 13 cards for 3-player, 11 for 4-player partnership).
  */
 export function dealHands(variant: Variant, numPlayers: number): DealResult {
-  const handSize = variant === '2p' ? 15 : 13
+  const handSize = dealSize(variant)
   const deck = shuffle(createDeck())
 
   const hands: Card[][] = []

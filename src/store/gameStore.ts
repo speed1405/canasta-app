@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import type { GameState, AIDifficulty, Variant } from '../game/types'
-import { calculateRoundScore, canGoOut } from '../game/scoring'
+import { teamIndex, partnerIndex } from '../game/types'
+import { calculateRoundScore, calculatePartnershipTeamScore, canGoOut } from '../game/scoring'
 import { validatePickUpPile } from '../game/rules'
+import { countCanastas } from '../game/scoring'
 import { getAIAction } from '../game/ai'
 import {
   initGame,
@@ -18,6 +20,15 @@ import { playDeal, playDiscard, playMeld, playCanasta, playGoOut, playInvalid } 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export interface TeamScore {
+  teamIndex: number
+  teamName: string
+  playerIds: string[]
+  playerNames: string[]
+  roundScore: number
+  totalScore: number
+}
+
 export interface RoundEndData {
   roundNumber: number
   scores: {
@@ -26,6 +37,7 @@ export interface RoundEndData {
     roundScore: number
     totalScore: number
   }[]
+  teamScores?: TeamScore[] // populated for partnership variant
   matchOver: boolean
   winner?: string
 }
@@ -38,6 +50,10 @@ interface GameStore {
   lastError: string
   roundEndData: RoundEndData | null
   gameStartTimeMs: number
+  /** Partnership only: pending permission dialog — human wants to go out */
+  partnerPermissionPending: boolean
+  /** Partnership only: pending discard card ID for go-out after permission granted */
+  pendingGoOutCardId: string | null
 
   startGame: (variant: Variant, difficulty: AIDifficulty) => void
   selectCard: (cardId: string) => void
@@ -50,6 +66,8 @@ interface GameStore {
   requestHint: () => void
   acknowledgeRoundEnd: () => void
   triggerAITurn: () => void
+  /** Partnership: respond to partner permission dialog */
+  respondPartnerPermission: (approved: boolean) => void
 }
 
 // ─── Helper: compute round-end display data ───────────────────────────────────
@@ -62,6 +80,63 @@ function computeRoundEndData(
     (sum, p) => sum + p.red3s.length,
     0,
   )
+
+  const isPartnership = state.variant === '4p-partnership'
+
+  if (isPartnership) {
+    // Calculate team scores
+    const team0Score = calculatePartnershipTeamScore(
+      state.players[0], state.players[2],
+      { goingOutPlayerId, totalRed3Count },
+    )
+    const team1Score = calculatePartnershipTeamScore(
+      state.players[1], state.players[3],
+      { goingOutPlayerId, totalRed3Count },
+    )
+
+    const teamScores: TeamScore[] = [
+      {
+        teamIndex: 0,
+        teamName: 'Your Team',
+        playerIds: [state.players[0].id, state.players[2].id],
+        playerNames: [state.players[0].name, state.players[2].name],
+        roundScore: team0Score.total,
+        totalScore: state.players[0].score + team0Score.total,
+      },
+      {
+        teamIndex: 1,
+        teamName: 'Opponents',
+        playerIds: [state.players[1].id, state.players[3].id],
+        playerNames: [state.players[1].name, state.players[3].name],
+        roundScore: team1Score.total,
+        totalScore: state.players[1].score + team1Score.total,
+      },
+    ]
+
+    // Per-player scores for backwards compatibility
+    const scores = state.players.map((player, i) => {
+      const ts = teamIndex(i) === 0 ? team0Score : team1Score
+      return {
+        playerId: player.id,
+        name: player.name,
+        roundScore: ts.total,
+        totalScore: player.score + ts.total,
+      }
+    })
+
+    const maxTeamTotal = Math.max(...teamScores.map(t => t.totalScore))
+    const matchOver = maxTeamTotal >= 5000
+
+    return {
+      roundNumber: state.roundScores.length + 1,
+      scores,
+      teamScores,
+      matchOver,
+      winner: matchOver
+        ? teamScores.find(t => t.totalScore === maxTeamTotal)?.teamName
+        : undefined,
+    }
+  }
 
   const scores = state.players.map(player => {
     const wentOut = player.id === goingOutPlayerId
@@ -93,9 +168,15 @@ function computeRoundEndData(
 
 /** Detect who went out (empty hand + canasta) in a state where phase === 'end'. */
 function detectGoingOutPlayer(state: GameState): string | null {
-  const player = state.players.find(
-    p => p.hand.length === 0 && canGoOut(p),
-  )
+  const isPartnership = state.variant === '4p-partnership'
+  const player = state.players.find((p, i) => {
+    if (p.hand.length !== 0) return false
+    if (isPartnership) {
+      const partner = state.players[partnerIndex(i)]
+      return canGoOut(p, partner?.melds)
+    }
+    return canGoOut(p)
+  })
   return player?.id ?? null
 }
 
@@ -116,9 +197,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   lastError: '',
   roundEndData: null,
   gameStartTimeMs: 0,
+  partnerPermissionPending: false,
+  pendingGoOutCardId: null,
 
   startGame: (variant, difficulty) => {
-    const numPlayers = variant === '2p' ? 2 : 3
+    const numPlayers = variant === '2p' ? 2 : variant === '4p-partnership' ? 4 : 3
     const { state } = initGame(variant, difficulty, numPlayers)
     set({
       gameState: state,
@@ -128,6 +211,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lastError: '',
       roundEndData: null,
       gameStartTimeMs: Date.now(),
+      partnerPermissionPending: false,
+      pendingGoOutCardId: null,
     })
     // If the first player is AI, trigger their turn
     if (state.players[state.currentPlayerIndex].type === 'ai') {
@@ -248,7 +333,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ lastError: 'You must draw before discarding.' })
       return
     }
-    const player = gameState.players[gameState.currentPlayerIndex]
+    const playerIndex = gameState.currentPlayerIndex
+    const player = gameState.players[playerIndex]
     if (player.type !== 'human') return
 
     if (selectedCardIds.size !== 1) {
@@ -257,6 +343,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     const [cardId] = selectedCardIds
+
+    // Partnership ask-permission rule: if discarding last card would go out,
+    // check if partner has < 2 canastas — if so, must ask permission first
+    if (gameState.variant === '4p-partnership') {
+      const cardToDiscard = player.hand.find(c => c.id === cardId)
+      if (cardToDiscard && player.hand.length === 1) {
+        // Would go out — check team canastas and ask permission
+        const partnerPlayer = gameState.players[partnerIndex(playerIndex)]
+        const partnerCanastas = countCanastas(partnerPlayer.melds)
+        const playerCanastas = countCanastas(player.melds)
+        const teamCanastas = playerCanastas + partnerCanastas
+        // Only proceed if team has enough canastas to go out (≥2)
+        if (teamCanastas >= 2 && partnerCanastas < 2) {
+          // Must ask partner for permission
+          set({ partnerPermissionPending: true, pendingGoOutCardId: cardId })
+          return
+        }
+      }
+    }
+
     const newState = applyDiscard(gameState, player.id, cardId)
     if (newState === gameState) {
       playInvalid()
@@ -286,6 +392,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ hint: getHint(gameState) })
   },
 
+  respondPartnerPermission: (approved) => {
+    const { gameState, pendingGoOutCardId } = get()
+    set({ partnerPermissionPending: false, pendingGoOutCardId: null })
+
+    if (!approved) {
+      set({ lastError: 'Partner said no — you cannot go out this turn.' })
+      return
+    }
+
+    if (!gameState || !pendingGoOutCardId) return
+
+    const player = gameState.players[gameState.currentPlayerIndex]
+    const newState = applyDiscard(gameState, player.id, pendingGoOutCardId)
+    if (newState === gameState) {
+      playInvalid()
+      set({ lastError: 'Cannot go out with that card.' })
+      return
+    }
+
+    playGoOut()
+    if (newState.phase === 'end') {
+      handleRoundEnd(newState, set)
+    } else {
+      set({ gameState: newState, selectedCardIds: new Set(), lastError: '', hint: '' })
+      const nextPlayer = newState.players[newState.currentPlayerIndex]
+      if (nextPlayer.type === 'ai' && newState.phase === 'draw') {
+        setTimeout(() => get().triggerAITurn(), 600)
+      }
+    }
+  },
+
   acknowledgeRoundEnd: () => {
     const { gameState, roundEndData, gameStartTimeMs, difficulty } = get()
     if (!gameState || !roundEndData) return
@@ -294,10 +431,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Record the completed match in stats
       const scores: Record<string, number> = {}
       roundEndData.scores.forEach(s => { scores[s.playerId] = s.totalScore })
-      const winningEntry = roundEndData.scores.reduce((a, b) =>
-        a.totalScore >= b.totalScore ? a : b
-      )
-      const winner: 'human' | 'ai' = winningEntry.playerId === 'human' ? 'human' : 'ai'
+      // For partnership, determine winning team
+      const winningEntry = roundEndData.teamScores
+        ? roundEndData.teamScores.reduce((a, b) => a.totalScore >= b.totalScore ? a : b)
+        : roundEndData.scores.reduce((a, b) => a.totalScore >= b.totalScore ? a : b)
+      const winner: 'human' | 'ai' =
+        roundEndData.teamScores
+          ? (roundEndData.teamScores[0].totalScore >= roundEndData.teamScores[1].totalScore ? 'human' : 'ai')
+          : ('playerId' in winningEntry && winningEntry.playerId === 'human' ? 'human' : 'ai')
       const record = createGameRecord(
         gameState.variant,
         difficulty,

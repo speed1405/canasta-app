@@ -7,6 +7,7 @@ interface Props {
 
 export function RoundEndModal({ data, onAcknowledge }: Props) {
   const buttonLabel = data.matchOver ? 'New Game' : 'Next Round'
+  const isPartnership = !!data.teamScores
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
@@ -25,37 +26,72 @@ export function RoundEndModal({ data, onAcknowledge }: Props) {
 
         {/* Score table */}
         <div className="px-6 py-4">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200">
-                <th className="py-2 text-left font-semibold text-slate-600">Player</th>
-                <th className="py-2 text-right font-semibold text-slate-600">
-                  Round Score
-                </th>
-                <th className="py-2 text-right font-semibold text-slate-600">
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.scores.map(s => (
-                <tr key={s.playerId} className="border-b border-slate-100 last:border-0">
-                  <td className="py-3 font-medium text-slate-800">{s.name}</td>
-                  <td
-                    className={`py-3 text-right font-semibold tabular-nums ${
-                      s.roundScore >= 0 ? 'text-green-700' : 'text-red-600'
-                    }`}
-                  >
-                    {s.roundScore >= 0 ? '+' : ''}
-                    {s.roundScore}
-                  </td>
-                  <td className="py-3 text-right font-bold tabular-nums text-slate-800">
-                    {s.totalScore}
-                  </td>
+          {isPartnership ? (
+            /* Partnership: team score table */
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="py-2 text-left font-semibold text-slate-600">Team</th>
+                  <th className="py-2 text-right font-semibold text-slate-600">Round</th>
+                  <th className="py-2 text-right font-semibold text-slate-600">Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.teamScores!.map(t => (
+                  <tr key={t.teamIndex} className="border-b border-slate-100 last:border-0">
+                    <td className="py-3">
+                      <div className="font-medium text-slate-800">{t.teamName}</div>
+                      <div className="text-xs text-slate-500">{t.playerNames.join(' & ')}</div>
+                    </td>
+                    <td
+                      className={`py-3 text-right font-semibold tabular-nums ${
+                        t.roundScore >= 0 ? 'text-green-700' : 'text-red-600'
+                      }`}
+                    >
+                      {t.roundScore >= 0 ? '+' : ''}
+                      {t.roundScore}
+                    </td>
+                    <td className="py-3 text-right font-bold tabular-nums text-slate-800">
+                      {t.totalScore}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            /* Individual score table */
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="py-2 text-left font-semibold text-slate-600">Player</th>
+                  <th className="py-2 text-right font-semibold text-slate-600">
+                    Round Score
+                  </th>
+                  <th className="py-2 text-right font-semibold text-slate-600">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.scores.map(s => (
+                  <tr key={s.playerId} className="border-b border-slate-100 last:border-0">
+                    <td className="py-3 font-medium text-slate-800">{s.name}</td>
+                    <td
+                      className={`py-3 text-right font-semibold tabular-nums ${
+                        s.roundScore >= 0 ? 'text-green-700' : 'text-red-600'
+                      }`}
+                    >
+                      {s.roundScore >= 0 ? '+' : ''}
+                      {s.roundScore}
+                    </td>
+                    <td className="py-3 text-right font-bold tabular-nums text-slate-800">
+                      {s.totalScore}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
           {!data.matchOver && (
             <p className="mt-3 text-center text-xs text-slate-500">

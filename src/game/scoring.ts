@@ -115,12 +115,17 @@ export function countCanastas(melds: Meld[]): number {
 
 /**
  * Determine whether a player can legally go out.
- * A player may go out when they have at least one completed canasta AND
- * they can meld/discard their last card in a single turn.
- * (Full validation is done in rules.ts; this is a quick eligibility check.)
+ * In standard play: player needs at least 1 canasta.
+ * In partnership mode: pass the partner's melds to check the team total (≥ 2 canastas).
  */
-export function canGoOut(player: Player): boolean {
-  return countCanastas(player.melds) >= 1
+export function canGoOut(player: Player, partnerMelds?: Meld[]): boolean {
+  const playerCanastas = countCanastas(player.melds)
+  if (partnerMelds !== undefined) {
+    // Partnership: team needs at least 2 canastas combined
+    const teamCanastas = playerCanastas + countCanastas(partnerMelds)
+    return teamCanastas >= 2
+  }
+  return playerCanastas >= 1
 }
 
 /**
@@ -130,4 +135,55 @@ export function canGoOut(player: Player): boolean {
 export function scoreRed3(card: Card, playerHasOpenedMelds: boolean): number {
   if (!isRed3(card)) return 0
   return playerHasOpenedMelds ? 100 : -100
+}
+
+/**
+ * Calculate the combined round score for a partnership team.
+ * Both players' melds, red 3s, and hand penalties are pooled together.
+ * The score is applied equally to both partners.
+ */
+export function calculatePartnershipTeamScore(
+  player1: Player,
+  player2: Player,
+  {
+    goingOutPlayerId = null,
+    totalRed3Count = 0,
+  }: {
+    goingOutPlayerId?: string | null
+    totalRed3Count?: number
+  } = {},
+): RoundScoreDetails {
+  const wentOut = player1.id === goingOutPlayerId || player2.id === goingOutPlayerId
+  const wentOutConcealed =
+    wentOut &&
+    !player1.hasOpenedMelds &&
+    !player2.hasOpenedMelds
+
+  // Combine both players' melds and red 3s
+  const allMelds = [...player1.melds, ...player2.melds]
+  const allRed3s = [...player1.red3s, ...player2.red3s]
+  const teamHasOpenedMelds = player1.hasOpenedMelds || player2.hasOpenedMelds
+
+  const meldPoints = allMelds.reduce((sum, m) => sum + meldTotalPoints(m), 0)
+  const canastaPoints = allMelds.reduce((sum, m) => sum + canastaBonus(m), 0)
+  const goingOutBonus = wentOut ? (wentOutConcealed ? 200 : 100) : 0
+
+  const red3Count = allRed3s.filter(isRed3).length
+  let red3Value: number
+  if (red3Count === 0) {
+    red3Value = 0
+  } else if (red3Count === 4 && totalRed3Count === 4) {
+    red3Value = 800
+  } else {
+    red3Value = red3Count * 100
+  }
+  const red3Points = teamHasOpenedMelds ? red3Value : -red3Value
+
+  const handPenalty =
+    player1.hand.reduce((sum, c) => sum + cardPointValue(c), 0) +
+    player2.hand.reduce((sum, c) => sum + cardPointValue(c), 0)
+
+  const total = meldPoints + canastaPoints + goingOutBonus + red3Points - handPenalty
+
+  return { meldPoints, canastaPoints, goingOutBonus, red3Points, handPenalty, total }
 }

@@ -59,11 +59,23 @@ export function cardPointValue(card: Card): number {
 }
 
 // Game variant
-export type Variant = '2p' | '3p'
+export type Variant = '2p' | '3p' | '4p-partnership'
 
 // Initial deal size per variant
 export function dealSize(variant: Variant): number {
-  return variant === '2p' ? 15 : 13
+  if (variant === '2p') return 15
+  if (variant === '4p-partnership') return 11
+  return 13
+}
+
+// Partnership helpers — only meaningful when variant === '4p-partnership'
+// Turn order: 0 → 1 → 2 → 3; teams: {0,2} vs {1,3}
+export function teamIndex(playerIndex: number): number {
+  return playerIndex % 2 // 0,2 → team 0; 1,3 → team 1
+}
+
+export function partnerIndex(playerIndex: number): number {
+  return (playerIndex + 2) % 4
 }
 
 // Meld representation

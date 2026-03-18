@@ -11,6 +11,12 @@ const DIFFICULTIES: { value: AIDifficulty; label: string; description: string }[
   { value: 'expert', label: 'Expert', description: 'Tournament-strength AI — minimax + Bayesian hand model' },
 ]
 
+const VARIANTS: { value: Variant; label: string; description: string }[] = [
+  { value: '2p', label: '2-Player', description: '15 cards dealt — classic head-to-head' },
+  { value: '3p', label: '3-Player', description: '13 cards dealt — three-way competition' },
+  { value: '4p-partnership', label: '4-Player Partnership', description: '11 cards dealt — 2 vs 2 team Canasta' },
+]
+
 export function PlaySetup() {
   const navigate = useNavigate()
   const [variant, setVariant] = useState<Variant>('2p')
@@ -27,21 +33,21 @@ export function PlaySetup() {
         {/* Variant selector */}
         <section>
           <h2 className="text-lg font-bold mb-3">Game variant</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {(['2p', '3p'] as Variant[]).map((v) => (
+          <div className="grid grid-cols-1 gap-3">
+            {VARIANTS.map((v) => (
               <button
-                key={v}
-                onClick={() => setVariant(v)}
+                key={v.value}
+                onClick={() => setVariant(v.value)}
                 className={`p-4 rounded-xl border-2 text-left transition-colors ${
-                  variant === v
+                  variant === v.value
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
                     : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
                 }`}
-                aria-pressed={variant === v}
+                aria-pressed={variant === v.value}
               >
-                <div className="font-bold">{v === '2p' ? '2-Player' : '3-Player'}</div>
+                <div className="font-bold">{v.label}</div>
                 <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  {v === '2p' ? '15 cards dealt' : '13 cards dealt'}
+                  {v.description}
                 </div>
               </button>
             ))}

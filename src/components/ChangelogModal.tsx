@@ -8,6 +8,17 @@ interface ChangelogEntry {
 
 const ENTRIES: ChangelogEntry[] = [
   {
+    version: '1.3.0',
+    date: 'March 2026',
+    changes: [
+      '🤝 New: 4-Player Partnership (2 vs 2) — team up with an AI partner against two opponents!',
+      '🏆 Shared team melds — you and your partner build melds together; add cards to each other\'s sets',
+      '🙋 Ask-partner permission — if your partner needs more canastas, ask before going out',
+      '📊 Team scoring display — round-end screen now shows team totals for partnership games',
+      '🤖 Cooperative AI partner — the AI partner prioritises completing your shared team melds',
+    ],
+  },
+  {
     version: '1.2.0',
     date: 'March 2026',
     changes: [
