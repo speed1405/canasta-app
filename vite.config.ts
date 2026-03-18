@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       manifest: {
         name: 'Canasta Training App',
         short_name: 'Canasta',
@@ -33,6 +33,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
+    },
+    alias: {
+      'virtual:pwa-register/react': '/src/test/mocks/pwaRegister.ts',
     },
   },
 })

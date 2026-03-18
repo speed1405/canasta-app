@@ -42,7 +42,7 @@ export function PracticeScenario() {
   const isCorrect = answered && selectedOption === scenario.correctIndex
 
   function handleAnswer(optionIndex: number) {
-    if (answered) return
+    if (answered || !scenario) return
     setSelectedOption(optionIndex)
     setAnswered(true)
     const correct = optionIndex === scenario.correctIndex

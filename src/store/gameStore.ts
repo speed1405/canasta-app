@@ -13,6 +13,8 @@ import {
   applyEndRound,
   getHint,
 } from '../game/gameEngine'
+import { recordGame, createGameRecord } from '../game/stats'
+import { playDeal, playDiscard, playMeld, playCanasta, playGoOut, playInvalid } from '../game/soundManager'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +37,7 @@ interface GameStore {
   hint: string
   lastError: string
   roundEndData: RoundEndData | null
+  gameStartTimeMs: number
 
   startGame: (variant: Variant, difficulty: AIDifficulty) => void
   selectCard: (cardId: string) => void
@@ -96,6 +99,13 @@ function detectGoingOutPlayer(state: GameState): string | null {
   return player?.id ?? null
 }
 
+/** Returns true if a new canasta (7+ card meld) was completed in newState vs oldState. */
+function hasNewCanasta(oldState: GameState, newState: GameState): boolean {
+  const countCanastas = (s: GameState) =>
+    s.players.flatMap(p => p.melds).filter(m => m.naturals.length + m.wilds.length >= 7).length
+  return countCanastas(newState) > countCanastas(oldState)
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -105,6 +115,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   hint: '',
   lastError: '',
   roundEndData: null,
+  gameStartTimeMs: 0,
 
   startGame: (variant, difficulty) => {
     const numPlayers = variant === '2p' ? 2 : 3
@@ -116,6 +127,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       hint: '',
       lastError: '',
       roundEndData: null,
+      gameStartTimeMs: Date.now(),
     })
     // If the first player is AI, trigger their turn
     if (state.players[state.currentPlayerIndex].type === 'ai') {
@@ -151,6 +163,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ lastError: 'Stock is empty — cannot draw.' })
       return
     }
+    playDeal()
     set({ gameState: newState, lastError: '', hint: '' })
   },
 
@@ -170,6 +183,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ lastError: result.ok ? 'Cannot pick up pile.' : result.reason })
       return
     }
+    playDeal()
     set({ gameState: newState, lastError: '', hint: '' })
   },
 
@@ -186,14 +200,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const cardIds = [...selectedCardIds]
     const newState = applyPlaceMeld(gameState, player.id, cardIds)
     if (newState === gameState) {
+      playInvalid()
       set({ lastError: 'Invalid meld — check card count, rank, and wild limits.' })
       return
     }
 
     if (newState.phase === 'end') {
+      playGoOut()
       handleRoundEnd(newState, set)
       return
     }
+    hasNewCanasta(gameState, newState) ? playCanasta() : playMeld()
     set({ gameState: newState, selectedCardIds: new Set(), lastError: '', hint: '' })
   },
 
@@ -210,14 +227,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const cardIds = [...selectedCardIds]
     const newState = applyAddToMeld(gameState, playerId, cardIds, meldIndex)
     if (newState === gameState) {
+      playInvalid()
       set({ lastError: 'Cannot add those cards to that meld.' })
       return
     }
 
     if (newState.phase === 'end') {
+      playGoOut()
       handleRoundEnd(newState, set)
       return
     }
+    hasNewCanasta(gameState, newState) ? playCanasta() : playMeld()
     set({ gameState: newState, selectedCardIds: new Set(), lastError: '', hint: '' })
   },
 
@@ -239,15 +259,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const [cardId] = selectedCardIds
     const newState = applyDiscard(gameState, player.id, cardId)
     if (newState === gameState) {
+      playInvalid()
       set({ lastError: 'Cannot discard that card.' })
       return
     }
 
     if (newState.phase === 'end') {
+      playGoOut()
       handleRoundEnd(newState, set)
       return
     }
 
+    playDiscard()
     set({ gameState: newState, selectedCardIds: new Set(), lastError: '', hint: '' })
 
     // Trigger AI turn if next player is AI
@@ -264,11 +287,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   acknowledgeRoundEnd: () => {
-    const { gameState, roundEndData } = get()
+    const { gameState, roundEndData, gameStartTimeMs, difficulty } = get()
     if (!gameState || !roundEndData) return
 
     if (roundEndData.matchOver) {
-      // Game is over — just clear the modal
+      // Record the completed match in stats
+      const scores: Record<string, number> = {}
+      roundEndData.scores.forEach(s => { scores[s.playerId] = s.totalScore })
+      const winningEntry = roundEndData.scores.reduce((a, b) =>
+        a.totalScore >= b.totalScore ? a : b
+      )
+      const winner: 'human' | 'ai' = winningEntry.playerId === 'human' ? 'human' : 'ai'
+      const record = createGameRecord(
+        gameState.variant,
+        difficulty,
+        winner,
+        scores,
+        gameState.roundScores.length + 1,
+        Date.now() - gameStartTimeMs,
+      )
+      recordGame(record)
       set({ roundEndData: null })
       return
     }

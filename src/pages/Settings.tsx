@@ -37,6 +37,9 @@ export function Settings() {
     if (prefs.theme !== 'system') {
       root.classList.add(prefs.theme)
     }
+    // Apply animation speed as a CSS custom property
+    const speedMap: Record<AnimSpeed, string> = { off: '0ms', normal: '300ms', fast: '100ms' }
+    root.style.setProperty('--anim-speed', speedMap[prefs.animSpeed])
   }, [prefs])
 
   function update<K extends keyof Preferences>(key: K, value: Preferences[K]) {

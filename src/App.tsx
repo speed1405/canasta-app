@@ -1,7 +1,13 @@
 import { AppRouter } from './router/AppRouter'
+import { UpdateBanner } from './components/UpdateBanner'
 
 function App() {
-  return <AppRouter />
+  return (
+    <>
+      <AppRouter />
+      <UpdateBanner />
+    </>
+  )
 }
 
 export default App
