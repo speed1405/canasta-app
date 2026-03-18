@@ -2,14 +2,17 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { Settings } from '../../pages/Settings'
+import { AuthProvider } from '../../auth/AuthContext'
 
 const PREFS_KEY = 'canasta_prefs'
 
 function renderSettings() {
   return render(
-    <MemoryRouter>
-      <Settings />
-    </MemoryRouter>,
+    <AuthProvider>
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>
+    </AuthProvider>,
   )
 }
 

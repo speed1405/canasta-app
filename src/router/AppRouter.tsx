@@ -11,6 +11,11 @@ const PlayGame = lazy(() => import('../pages/PlayGame').then((m) => ({ default: 
 const Reference = lazy(() => import('../pages/Reference').then((m) => ({ default: m.Reference })))
 const Stats = lazy(() => import('../pages/Stats').then((m) => ({ default: m.Stats })))
 const Settings = lazy(() => import('../pages/Settings').then((m) => ({ default: m.Settings })))
+const Login = lazy(() => import('../pages/Login').then((m) => ({ default: m.Login })))
+const Register = lazy(() => import('../pages/Register').then((m) => ({ default: m.Register })))
+const ForgotPassword = lazy(() => import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword })))
+const Profile = lazy(() => import('../pages/Profile').then((m) => ({ default: m.Profile })))
+const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })))
 
 function RouteLoading() {
   return (
@@ -35,6 +40,11 @@ export function AppRouter() {
           <Route path="/reference" element={<Reference />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
