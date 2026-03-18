@@ -22,7 +22,7 @@ describe('Reference', () => {
     expect(screen.getByRole('searchbox', { name: /search rules/i })).toBeTruthy()
   })
 
-  it('renders all six rule sections by default', () => {
+  it('renders all seven rule sections by default', () => {
     renderReference()
     expect(screen.getByText('Initial Meld Requirements')).toBeTruthy()
     expect(screen.getByText('Card Point Values')).toBeTruthy()
@@ -30,6 +30,7 @@ describe('Reference', () => {
     expect(screen.getByText('End-of-Round Bonuses & Penalties')).toBeTruthy()
     expect(screen.getByText('Going-Out Conditions')).toBeTruthy()
     expect(screen.getByText('Variant Specifics')).toBeTruthy()
+    expect(screen.getByText('Tips & Strategy')).toBeTruthy()
   })
 
   it('filters sections when searching', () => {
@@ -76,5 +77,21 @@ describe('Reference', () => {
     expect(screen.getByText('3-Player')).toBeTruthy()
     expect(screen.getByText('15')).toBeTruthy()
     expect(screen.getByText('13')).toBeTruthy()
+  })
+
+  it('shows Tips & Strategy section with tactical advice', () => {
+    renderReference()
+    expect(screen.getByText('Tips & Strategy')).toBeTruthy()
+    expect(screen.getByText(/when to freeze the pile/i)).toBeTruthy()
+    expect(screen.getByText(/optimal discard selection/i)).toBeTruthy()
+    expect(screen.getByText(/managing wild cards/i)).toBeTruthy()
+  })
+
+  it('Tips & Strategy section appears in search results for "tips"', () => {
+    renderReference()
+    const search = screen.getByRole('searchbox')
+    fireEvent.change(search, { target: { value: 'tips' } })
+    expect(screen.getByText('Tips & Strategy')).toBeTruthy()
+    expect(screen.queryByText('Card Point Values')).toBeNull()
   })
 })

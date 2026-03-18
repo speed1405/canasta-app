@@ -137,6 +137,34 @@ const SECTIONS = [
       </table>
     ),
   },
+  {
+    id: 'tips-strategy',
+    title: 'Tips & Strategy',
+    content: (
+      <ul className="text-sm space-y-4">
+        <li>
+          <strong className="block mb-1">🧊 When to freeze the pile</strong>
+          Discard a wild card (joker or 2) to freeze the pile when it has grown large and your opponent is close to picking it up. A frozen pile can only be taken with two natural cards matching the top card — this protects a significant lead and prevents your opponent from getting a huge hand boost.
+        </li>
+        <li>
+          <strong className="block mb-1">🎯 Optimal discard selection</strong>
+          Prefer discarding low-value cards (4s, 5s, 6s, 7s) that are unlikely to help your opponent complete a meld. Avoid discarding cards that match ranks your opponent has already melded — that hands them an easy pile pickup. Never discard a wild card unless absolutely necessary.
+        </li>
+        <li>
+          <strong className="block mb-1">🃏 Managing wild cards</strong>
+          Wild cards (jokers and 2s) are the most versatile cards in Canasta. Use them to complete melds you are close to finishing, or to reach the initial meld threshold. Avoid locking too many wilds into a single mixed meld early — save at least one wild as a strategic option for later turns.
+        </li>
+        <li>
+          <strong className="block mb-1">⭐ Building toward a natural canasta</strong>
+          A natural canasta (7 natural cards, no wilds) scores 500 points vs 300 for a mixed canasta. If you have 5–6 natural cards of the same rank, consider holding off on adding a wild — drawing the 7th natural is often worth the wait for the extra 200-point bonus.
+        </li>
+        <li>
+          <strong className="block mb-1">🏁 Going out vs. building up</strong>
+          Going out early (with just one canasta) can be profitable if you have a large point lead and your opponent has many cards in hand — their unmelded cards become penalties. However, if the pile is large and you are behind on points, continuing to build melds may score more. Always weigh the potential penalty you impose on your opponent against the points you would leave on the table.
+        </li>
+      </ul>
+    ),
+  },
 ]
 
 export function Reference() {

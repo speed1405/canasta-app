@@ -23,22 +23,22 @@ describe('PracticeList', () => {
     expect(screen.getByText('Practice')).toBeTruthy()
   })
 
-  it('renders all 10 scenario titles', () => {
+  it('renders all scenario titles', () => {
     renderPracticeList()
     for (const scen of SCENARIOS) {
       expect(screen.getByText(scen.title)).toBeTruthy()
     }
   })
 
-  it('shows 0 of 10 drills passed when none are done', () => {
+  it('shows 0 of N drills passed when none are done', () => {
     renderPracticeList()
-    expect(screen.getByText(/0 of 10 drills passed/i)).toBeTruthy()
+    expect(screen.getByText(new RegExp(`0 of ${SCENARIOS.length} drills passed`, 'i'))).toBeTruthy()
   })
 
   it('shows progress when a drill is passed', () => {
     recordScenarioAttempt('initial-meld', true)
     renderPracticeList()
-    expect(screen.getByText(/1 of 10 drills passed/i)).toBeTruthy()
+    expect(screen.getByText(new RegExp(`1 of ${SCENARIOS.length} drills passed`, 'i'))).toBeTruthy()
   })
 
   it('shows passed badge on a completed drill', () => {
