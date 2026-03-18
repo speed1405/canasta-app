@@ -15,6 +15,7 @@ An interactive **Canasta training application** that runs in the browser and wor
 
 React · TypeScript · Vite · Tailwind CSS · Zustand · Vitest · vite-plugin-pwa
 
-## See the full plan
+## Documentation
 
-See [PLAN.md](./PLAN.md) for the detailed project plan, milestones, data structures, and testing strategy.
+- [PLAN.md](./PLAN.md) — detailed project specification: data structures, AI behaviour, design targets, and testing strategy.
+- [PHASES.md](./PHASES.md) — phased development plan with per-phase tasks, exit criteria, and the overall delivery roadmap.
