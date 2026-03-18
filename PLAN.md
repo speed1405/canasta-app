@@ -142,8 +142,77 @@ These are pure TypeScript modules (no UI dependency) so they can be unit-tested 
 | `pile.ts` | Discard pile rules; freeze pile (triggered by discarding a wild card) / unfreeze logic; one-turn block with black 3 |
 | `scoring.ts` | Calculate round and match scores (card values, canasta bonuses, going-out bonus, concealed-go-out bonus, red-3 bonus/penalty) |
 | `rules.ts` | Validate any proposed game action (draw 2 cards, pick up pile, meld, discard, go out) for individual-play rules; handles both 2-player and 3-player variants |
-| `ai.ts` | Rule-based AI with three difficulty levels (Easy / Medium / Hard) to choose draw/meld/discard actions |
+| `ai.ts` | Rule-based AI with four difficulty levels (Beginner / Easy / Medium / Hard) to choose draw/meld/discard actions; each level is a distinct strategy profile (see **AI Difficulty Levels** section) |
 | `stats.ts` | Record and query per-player game history (wins, losses, high scores, average score) stored in browser `localStorage` |
+
+---
+
+## AI Difficulty Levels
+
+Four profiles cover the full range of players — from young children to competitive card players.
+
+### Beginner
+**Goal:** let new players build confidence without being beaten by strategy.
+
+| Decision | Behaviour |
+|---|---|
+| Draw | Always draws 2 from stock (never picks up the pile) |
+| Meld | Melds any valid group it happens to hold; does not plan ahead |
+| Discard | Discards a random card from its hand (ignores pile state) |
+| Going out | Goes out as soon as the rules allow, regardless of score impact |
+| Freezing the pile | Never deliberately discards a wild card to freeze |
+| Canasta priority | Completes canastas by accident only |
+
+**Intended for:** absolute beginners, children, or players just learning the app's interface.
+
+---
+
+### Easy
+**Goal:** play legal, occasionally sensible moves but remain clearly beatable.
+
+| Decision | Behaviour |
+|---|---|
+| Draw | Picks up the pile only if the top card matches a meld it already has on the table |
+| Meld | Melds the largest valid group it can form; adds to existing melds first |
+| Discard | Prefers to discard cards with no meld potential (singles of low-point ranks); never discards wild cards |
+| Going out | Goes out when it has ≥ 1 canasta and ≤ 3 cards left in hand |
+| Freezing the pile | Never deliberately freezes |
+| Canasta priority | Finishes the nearest-complete canasta first |
+
+**Intended for:** players who know the rules and want a low-pressure game.
+
+---
+
+### Medium
+**Goal:** play competently, create real decisions for the human, but without lookahead.
+
+| Decision | Behaviour |
+|---|---|
+| Draw | Picks up the pile if the top card completes a meld *and* the pile has ≥ 4 cards (value threshold) |
+| Meld | Builds toward canastas; holds back wild cards to complete mixed canastas rather than burning them on small melds |
+| Discard | Avoids discarding the rank the human just melded; prefers safe discards (ranks not matching any visible human meld) |
+| Going out | Goes out when it has ≥ 2 canastas and can go out in a single turn (or concealed for the +200 bonus) |
+| Freezing the pile | Freezes the pile when the human has ≥ 8 cards in hand and looks close to going out |
+| Canasta priority | Balances completing existing melds vs. starting new ones based on card counts |
+
+**Intended for:** casual players who want a genuine challenge without feeling overwhelmed.
+
+---
+
+### Hard
+**Goal:** play near-optimally using full card-counting and hand modelling.
+
+| Decision | Behaviour |
+|---|---|
+| Draw | Maintains a running count of all seen cards; picks up the pile only when the expected score gain exceeds drawing 2 from stock by ≥ 30 pts |
+| Meld | Uses a greedy scoring heuristic — melds the combination that maximises immediate point gain while retaining the best going-out options |
+| Discard | Tracks every card the human has drawn and discarded; infers the human's probable melds; discards the card least likely to benefit the human *and* least costly to lose |
+| Going out | Calculates the score delta of going out now vs. continuing; goes out early if ahead, plays for a higher score if behind |
+| Freezing the pile | Actively freezes the pile when the human has a large hand and at least one incomplete canasta — prevents the human picking up and going out |
+| Concealed go-out | Saves wild cards and withholds melding to attempt a concealed go-out (+200 pts) when hand composition allows it |
+| 3-player adaptation | In 3-player mode, the two Hard AIs coordinate implicitly — each discard considers both opponents' visible melds |
+
+**Intended for:** experienced Canasta players who want a tough opponent.
 
 ---
 
@@ -158,7 +227,7 @@ type Suit = 'clubs'|'diamonds'|'hearts'|'spades'|'none';
 // '3-player': human vs. 2 AIs, 13-card deal.
 type GameVariant = '2-player' | '3-player';
 
-type AIDifficulty = 'easy' | 'medium' | 'hard';
+type AIDifficulty = 'beginner' | 'easy' | 'medium' | 'hard';
 
 interface Card {
   rank: Rank;
@@ -249,10 +318,11 @@ interface PlayerStats {
 - [ ] Build the `GameBoard` layout (table, melds, stock, discard pile, player hand).
 - [ ] Implement draw and discard UI (tap or drag).
 - [ ] Implement meld placement UI with validation feedback.
-- [ ] Implement rule-based AI (`ai.ts`) with three difficulty levels:
-  - **Easy** — plays legal moves, no lookahead; discards randomly from safe cards.
-  - **Medium** — prioritises completing melds and avoids feeding the opponent the pile.
-  - **Hard** — tracks seen cards, estimates opponent's hand strength, and plays defensively.
+- [ ] Implement rule-based AI (`ai.ts`) with four difficulty levels (see **AI Difficulty Levels** section for full behaviour spec):
+  - **Beginner** — makes purely random legal moves; never considers strategy; ideal for children or complete newcomers.
+  - **Easy** — always melds when possible; discards randomly among safe cards; never freezes the pile deliberately.
+  - **Medium** — prioritises completing melds and canastas; tracks the top discard card; avoids gifting a useful card to the opponent.
+  - **Hard** — full card-counting (tracks all seen cards); models opponent's likely hand; plays defensively, freezes the pile strategically, and times going-out to maximise score delta.
 - [ ] Add variant selector (2-player / 3-player) and AI difficulty selector to the new-game screen.
 - [ ] Support 3-player game loop: turn order cycles through human → AI #1 → AI #2.
 - [ ] Round-end scoring screen showing all players' scores.
