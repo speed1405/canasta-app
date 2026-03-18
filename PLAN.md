@@ -142,14 +142,14 @@ These are pure TypeScript modules (no UI dependency) so they can be unit-tested 
 | `pile.ts` | Discard pile rules; freeze pile (triggered by discarding a wild card) / unfreeze logic; one-turn block with black 3 |
 | `scoring.ts` | Calculate round and match scores (card values, canasta bonuses, going-out bonus, concealed-go-out bonus, red-3 bonus/penalty) |
 | `rules.ts` | Validate any proposed game action (draw 2 cards, pick up pile, meld, discard, go out) for individual-play rules; handles both 2-player and 3-player variants |
-| `ai.ts` | Rule-based AI with four difficulty levels (Beginner / Easy / Medium / Hard) to choose draw/meld/discard actions; each level is a distinct strategy profile (see **AI Difficulty Levels** section) |
+| `ai.ts` | Rule-based AI with five difficulty levels (Beginner / Easy / Medium / Hard / Expert) to choose draw/meld/discard actions; each level is a distinct strategy profile (see **AI Difficulty Levels** section) |
 | `stats.ts` | Record and query per-player game history (wins, losses, high scores, average score) stored in browser `localStorage` |
 
 ---
 
 ## AI Difficulty Levels
 
-Four profiles cover the full range of players — from young children to competitive card players.
+Five profiles cover the full range of players — from young children to tournament-level card players.
 
 ### Beginner
 **Goal:** let new players build confidence without being beaten by strategy.
@@ -216,6 +216,24 @@ Four profiles cover the full range of players — from young children to competi
 
 ---
 
+### Expert
+**Goal:** play at tournament strength — combines full card-counting, probability-weighted hand modelling, look-ahead scoring, and adaptive meta-strategy.
+
+| Decision | Behaviour |
+|---|---|
+| Draw | Maintains a complete probability distribution over unseen cards; picks up the pile when the expected score gain (calculated over a 3-turn look-ahead) exceeds drawing from stock; accounts for pile-freeze risk before committing |
+| Meld | Applies a minimax-style evaluation (2-ply) over all valid meld combinations; favours lines that simultaneously maximise own score *and* minimise the human's best response |
+| Discard | Models the full posterior distribution of the human's hand using Bayesian updating on every draw and discard event; discards the card that minimises the opponent's expected gain while preserving the AI's own going-out options |
+| Going out | Runs a Monte Carlo roll-out (≥ 50 simulations) to estimate the probability-weighted score delta of going out this turn vs. waiting; goes out when the expected gain is positive at 90 % confidence |
+| Freezing the pile | Proactively freezes the pile when simulation shows the human's probability of picking up and going out within 2 turns exceeds 40 % |
+| Concealed go-out | Plans concealed go-outs from the opening hand; tracks the minimum hand-size threshold at which a concealed exit is still feasible and adjusts melding strategy accordingly |
+| Adaptive play | Adjusts aggression dynamically: plays for maximum score when ahead; switches to defensive card denial when behind; re-evaluates every turn |
+| 3-player adaptation | In 3-player mode, models both opponents independently; produces a joint discard strategy that minimises the stronger of the two opponents' expected gains |
+
+**Intended for:** advanced Canasta players who want the toughest possible challenge.
+
+---
+
 ## Data Structures (key types)
 
 ```typescript
@@ -227,7 +245,7 @@ type Suit = 'clubs'|'diamonds'|'hearts'|'spades'|'none';
 // '3-player': human vs. 2 AIs, 13-card deal.
 type GameVariant = '2-player' | '3-player';
 
-type AIDifficulty = 'beginner' | 'easy' | 'medium' | 'hard';
+type AIDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 
 interface Card {
   rank: Rank;
@@ -318,11 +336,12 @@ interface PlayerStats {
 - [ ] Build the `GameBoard` layout (table, melds, stock, discard pile, player hand).
 - [ ] Implement draw and discard UI (tap or drag).
 - [ ] Implement meld placement UI with validation feedback.
-- [ ] Implement rule-based AI (`ai.ts`) with four difficulty levels (see **AI Difficulty Levels** section for full behaviour spec):
+- [ ] Implement rule-based AI (`ai.ts`) with five difficulty levels (see **AI Difficulty Levels** section for full behaviour spec):
   - **Beginner** — makes purely random legal moves; never considers strategy; ideal for children or complete newcomers.
   - **Easy** — always melds when possible; discards randomly among safe cards; never freezes the pile deliberately.
   - **Medium** — prioritises completing melds and canastas; tracks the top discard card; avoids gifting a useful card to the opponent.
   - **Hard** — full card-counting (tracks all seen cards); models opponent's likely hand; plays defensively, freezes the pile strategically, and times going-out to maximise score delta.
+  - **Expert** — tournament-strength play; minimax meld evaluation, Bayesian hand modelling, Monte Carlo go-out simulation, and adaptive meta-strategy that switches between aggressive and defensive play based on the current score.
 - [ ] Add variant selector (2-player / 3-player) and AI difficulty selector to the new-game screen.
 - [ ] Support 3-player game loop: turn order cycles through human → AI #1 → AI #2.
 - [ ] Round-end scoring screen showing all players' scores.
