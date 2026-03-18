@@ -163,7 +163,7 @@ against a rule-based AI, with five difficulty levels.
 
 ### Tasks
 
-- [ ] Design and implement at least 10 scenario drills, including:
+- [x] Design and implement at least 10 scenario drills, including:
   - "Form an initial meld that meets the minimum point requirement."
   - "The pile is frozen — which card lets you pick it up?"
   - "You have 2 canastas — should you go out?"
@@ -172,13 +172,13 @@ against a rule-based AI, with five difficulty levels.
   - "Your opponent went out concealed — how does scoring change?"
   - Additional scenarios covering freezing the pile, black 3 discards, and
     concealed go-outs.
-- [ ] Build the scenario list screen (`/practice`) with pass/fail status per drill.
-- [ ] Build the individual drill screen (`/practice/:scenId`):
+- [x] Build the scenario list screen (`/practice`) with pass/fail status per drill.
+- [x] Build the individual drill screen (`/practice/:scenId`):
   - Pre-set board state with instructions.
   - Immediate right/wrong feedback with a brief explanation.
   - "Try again" and "Next drill" buttons.
-- [ ] Track per-scenario results (pass/fail, attempts) in `localStorage`.
-- [ ] Write component tests for the scenario and feedback UI.
+- [x] Track per-scenario results (pass/fail, attempts) in `localStorage`.
+- [x] Write component tests for the scenario and feedback UI.
 
 ### Exit Criteria
 
