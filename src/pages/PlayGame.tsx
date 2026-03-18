@@ -1,22 +1,25 @@
-import { Link } from 'react-router-dom'
-import { PageLayout } from '../components/PageLayout'
+import { useEffect } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { GameBoard } from '../components/GameBoard'
+import { useGameStore } from '../store/gameStore'
+import type { AIDifficulty, Variant } from '../game/types'
 
 export function PlayGame() {
-  return (
-    <PageLayout title="Game" backTo="/play" backLabel="← New Game">
-      <div className="text-center py-16">
-        <div className="text-5xl mb-4" aria-hidden="true">🎮</div>
-        <h2 className="text-xl font-bold mb-2">Game Board</h2>
-        <p className="text-slate-500 dark:text-slate-400 mb-8">
-          The full game board will be implemented in Phase 2.
-        </p>
-        <Link
-          to="/play"
-          className="inline-flex items-center px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
-        >
-          ← Back to setup
-        </Link>
-      </div>
-    </PageLayout>
-  )
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const startGame = useGameStore((s) => s.startGame)
+  const gameState = useGameStore((s) => s.gameState)
+
+  useEffect(() => {
+    const variant = (searchParams.get('variant') ?? '2p') as Variant
+    const difficulty = (searchParams.get('difficulty') ?? 'easy') as AIDifficulty
+    startGame(variant, difficulty)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  if (!gameState) {
+    return <div className="flex items-center justify-center h-screen">Loading…</div>
+  }
+
+  return <GameBoard onExit={() => navigate('/play')} />
 }
