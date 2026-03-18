@@ -2,6 +2,7 @@
 
 :root {
   color-scheme: light dark;
+  --anim-speed: 300ms;
 }
 
 /* Touch target minimum */
