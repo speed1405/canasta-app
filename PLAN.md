@@ -60,7 +60,7 @@ Topics to cover:
 - Completing a Canasta (7+ cards of the same rank): natural Canasta (no wild cards, worth 500 pts) vs. mixed Canasta (contains wild cards, worth 300 pts).
 - Special cards: wild cards (jokers & 2s), red 3s, black 3s.
   - **Red 3s**: immediately placed face-up on the table when drawn or dealt; a replacement card is drawn. Each red 3 is worth 100 pts (all four together double to 800 pts). If a player holds all four they score 800 pts instead of 400 pts. Red 3s score against you if you have not completed any meld by end of round.
-  - **Black 3s**: may only be discarded (to block the pile); they cannot be melded except in a going-out play with three or four black 3s and no wild cards. They score 5 pts each at end of round.
+  - **Black 3s**: may only be discarded; they cannot be melded except in a going-out play with three or four black 3s and no wild cards. Discarding a black 3 **blocks** the pile for one turn only (the next player cannot pick it up). Note: a **frozen** pile is a different concept — the pile becomes permanently frozen for the round when a wild card is discarded onto it. Black 3s left in hand at end of round count as **−5 pts each** against your score.
 - Minimum initial meld requirement (based on your current score): below 0 pts → 15 pts; 0–1,499 pts → 50 pts; 1,500–2,999 pts → 90 pts; 3,000+ pts → 120 pts.
 - Going out: a player may go out only when they have **at least 2 completed canastas** and can legally meld or discard their last card. Going out scores a bonus of +100 pts (or +200 pts for going out concealed — melding the entire hand at once without having previously melded).
 - Scoring rules (card point values, canasta bonuses, going-out bonus, red-3 bonuses/penalties).
@@ -132,7 +132,7 @@ These are pure TypeScript modules (no UI dependency) so they can be unit-tested 
 | `deck.ts` | Create, shuffle, and deal the double deck (108 cards); deal 15 cards per player for individual play |
 | `hand.ts` | Represent a player's hand; sort, add, remove cards |
 | `meld.ts` | Validate and score a meld; enforce wild-card limit (≤ natural cards); check Canasta completion; distinguish natural (500 pts) vs. mixed (300 pts) canastas |
-| `pile.ts` | Discard pile rules; freeze / unfreeze logic; block with black 3 |
+| `pile.ts` | Discard pile rules; freeze pile (triggered by discarding a wild card) / unfreeze logic; one-turn block with black 3 |
 | `scoring.ts` | Calculate round and match scores (card values, canasta bonuses, going-out bonus, concealed-go-out bonus, red-3 bonus/penalty) |
 | `rules.ts` | Validate any proposed game action (draw 2 cards, pick up pile, meld, discard, go out) for individual-play rules |
 | `ai.ts` | Simple rule-based AI to choose draw/meld/discard actions |
