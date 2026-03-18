@@ -1,30 +1,42 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Home } from '../pages/Home'
-import { LearnList } from '../pages/LearnList'
-import { LearnLesson } from '../pages/LearnLesson'
-import { PracticeList } from '../pages/PracticeList'
-import { PracticeScenario } from '../pages/PracticeScenario'
-import { PlaySetup } from '../pages/PlaySetup'
-import { PlayGame } from '../pages/PlayGame'
-import { Reference } from '../pages/Reference'
-import { Stats } from '../pages/Stats'
-import { Settings } from '../pages/Settings'
+
+const Home = lazy(() => import('../pages/Home').then((m) => ({ default: m.Home })))
+const LearnList = lazy(() => import('../pages/LearnList').then((m) => ({ default: m.LearnList })))
+const LearnLesson = lazy(() => import('../pages/LearnLesson').then((m) => ({ default: m.LearnLesson })))
+const PracticeList = lazy(() => import('../pages/PracticeList').then((m) => ({ default: m.PracticeList })))
+const PracticeScenario = lazy(() => import('../pages/PracticeScenario').then((m) => ({ default: m.PracticeScenario })))
+const PlaySetup = lazy(() => import('../pages/PlaySetup').then((m) => ({ default: m.PlaySetup })))
+const PlayGame = lazy(() => import('../pages/PlayGame').then((m) => ({ default: m.PlayGame })))
+const Reference = lazy(() => import('../pages/Reference').then((m) => ({ default: m.Reference })))
+const Stats = lazy(() => import('../pages/Stats').then((m) => ({ default: m.Stats })))
+const Settings = lazy(() => import('../pages/Settings').then((m) => ({ default: m.Settings })))
+
+function RouteLoading() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-canasta-navy">
+      <div className="w-10 h-10 rounded-full border-4 border-canasta-gold border-t-transparent animate-spin" />
+    </div>
+  )
+}
 
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/learn" element={<LearnList />} />
-        <Route path="/learn/:lessonId" element={<LearnLesson />} />
-        <Route path="/practice" element={<PracticeList />} />
-        <Route path="/practice/:scenId" element={<PracticeScenario />} />
-        <Route path="/play" element={<PlaySetup />} />
-        <Route path="/play/game" element={<PlayGame />} />
-        <Route path="/reference" element={<Reference />} />
-        <Route path="/stats" element={<Stats />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
+      <Suspense fallback={<RouteLoading />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/learn" element={<LearnList />} />
+          <Route path="/learn/:lessonId" element={<LearnLesson />} />
+          <Route path="/practice" element={<PracticeList />} />
+          <Route path="/practice/:scenId" element={<PracticeScenario />} />
+          <Route path="/play" element={<PlaySetup />} />
+          <Route path="/play/game" element={<PlayGame />} />
+          <Route path="/reference" element={<Reference />} />
+          <Route path="/stats" element={<Stats />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

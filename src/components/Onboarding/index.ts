@@ -1,2 +1,3 @@
-export { Onboarding, markOnboardingDone, isOnboardingDone } from './Onboarding'
+export { Onboarding } from './Onboarding'
 export type { OnboardingProps } from './Onboarding'
+export { markOnboardingDone, isOnboardingDone } from './onboardingUtils'

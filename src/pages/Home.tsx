@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Onboarding, isOnboardingDone } from '../components/Onboarding'
 
 const NAV_ITEMS = [
@@ -12,13 +12,7 @@ const NAV_ITEMS = [
 ]
 
 export function Home() {
-  const [showOnboarding, setShowOnboarding] = useState(false)
-
-  useEffect(() => {
-    if (!isOnboardingDone()) {
-      setShowOnboarding(true)
-    }
-  }, [])
+  const [showOnboarding, setShowOnboarding] = useState(() => !isOnboardingDone())
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">

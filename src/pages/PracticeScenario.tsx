@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { SCENARIOS, getScenarioById } from '../game/scenarios'
@@ -14,16 +14,17 @@ export function PracticeScenario() {
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [answered, setAnswered] = useState(false)
-  const [alreadyPassed, setAlreadyPassed] = useState(false)
 
-  useEffect(() => {
-    if (scenario) {
-      const result = getScenarioResult(scenario.id)
-      setAlreadyPassed(result?.passed ?? false)
-    }
+  // Derived: check localStorage directly so no stale state
+  const alreadyPassed = scenario ? (getScenarioResult(scenario.id)?.passed ?? false) : false
+
+  // Reset per-scenario UI state when the scenario changes (React recommended pattern)
+  const [prevScenId, setPrevScenId] = useState(scenId)
+  if (prevScenId !== scenId) {
+    setPrevScenId(scenId)
     setSelectedOption(null)
     setAnswered(false)
-  }, [scenario])
+  }
 
   if (!scenario) {
     return (
@@ -47,7 +48,6 @@ export function PracticeScenario() {
     setAnswered(true)
     const correct = optionIndex === scenario.correctIndex
     recordScenarioAttempt(scenario.id, correct)
-    if (correct) setAlreadyPassed(true)
   }
 
   function handleTryAgain() {
