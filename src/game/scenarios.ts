@@ -198,6 +198,96 @@ export const SCENARIOS: Scenario[] = [
     explanation:
       'Three Aces (3 × 20 = 60 pts) plus three Kings (3 × 10 = 30 pts) totals exactly 90 pts in natural card values, meeting the 90-point threshold. Wild cards do not count toward the threshold calculation, so options using wilds to pad the count are not valid for checking the minimum.',
   },
+  {
+    id: 'pile-pickup-natural',
+    title: 'Pick up the unfrozen pile',
+    description: 'When can you take the discard pile?',
+    icon: '📤',
+    instructions:
+      'The discard pile is NOT frozen. The top card is Q♠. To take an unfrozen pile you must be able to use the top card immediately — either adding it to one of your existing melds, or forming a new meld with it plus at least one matching natural card from your hand.',
+    question: 'Which hand lets you legally pick up this unfrozen pile (top card Q♠)?',
+    options: [
+      { text: 'Q♥ and 2♦ (wild) — one natural Queen plus a wild' },
+      { text: 'Q♦ and Q♣ — two natural Queens' },
+      { text: 'K♠ and J♠ — cards of adjacent ranks' },
+      { text: 'You can never pick up the pile unless it is frozen' },
+    ],
+    correctIndex: 1,
+    explanation:
+      'To pick up an unfrozen pile you need the top card plus at least one natural matching card from your hand to form or extend a meld. Two natural Queens (Q♦ + Q♣) combined with the top Q♠ create a valid 3-card natural meld. A wild card cannot substitute for the second natural card when starting a new meld from the pile.',
+  },
+  {
+    id: 'natural-vs-mixed',
+    title: 'Natural vs. mixed canasta',
+    description: 'Identify the canasta type and its bonus',
+    icon: '⭐',
+    instructions:
+      'Your team has a completed meld of exactly 7 cards on the table. The meld contains seven natural 9s drawn from the two decks in play — no wild cards have been added: 9♠ 9♦ 9♣ 9♥ 9♠ 9♦ 9♣ (two decks supply duplicates of each suit).',
+    question: 'What type of canasta is this and what bonus does it earn?',
+    options: [
+      { text: 'Mixed canasta — 300-point bonus because it has more than 5 cards' },
+      { text: 'Natural canasta — 500-point bonus because it contains no wild cards' },
+      { text: 'Natural canasta — 300-point bonus (same as mixed)' },
+      { text: 'It is not a canasta yet — you need at least 8 cards' },
+    ],
+    correctIndex: 1,
+    explanation:
+      'A canasta requires 7 or more cards of the same rank. A canasta with NO wild cards is a "natural canasta" worth a 500-point bonus. A canasta containing one or more wild cards is a "mixed canasta" worth 300 points. Seven natural 9s qualifies as a natural canasta.',
+  },
+  {
+    id: 'going-out-requirement',
+    title: 'Going-out canasta check',
+    description: 'Do you have what you need to go out?',
+    icon: '🏁',
+    instructions:
+      'You want to go out this turn. You have played all your cards into melds and your last discard will empty your hand. Review your team\'s table:\n• Meld A: 6 cards (all natural 8s) — NOT yet a canasta\n• Meld B: 5 cards (mixed Jacks) — NOT yet a canasta\n\nA canasta requires at least 7 cards of the same rank.',
+    question: 'Can you legally go out this turn?',
+    options: [
+      { text: 'Yes — you just need to empty your hand to go out' },
+      { text: 'Yes — two melds on the table is enough to go out' },
+      { text: 'No — you need at least one completed canasta (7+ cards) to go out' },
+      { text: 'No — you need at least three completed canastas to go out' },
+    ],
+    correctIndex: 2,
+    explanation:
+      'Going out requires at least one completed canasta (7+ cards of the same rank). Neither of your melds has reached 7 cards yet, so you cannot go out. You must continue building your melds before you can legally end the round.',
+  },
+  {
+    id: 'discard-choice',
+    title: 'Optimal discard selection',
+    description: 'Choose the safest card to discard',
+    icon: '🎯',
+    instructions:
+      'It is the end of your turn and you must discard one card. Your hand contains:\n• A♠ (20 pts, Aces are high-value and useful for melds)\n• 4♦ (5 pts, low value, rarely fits a meld)\n• J♣ (10 pts, medium value)\n• 2♥ (wild card — extremely versatile)\n\nYou have no melds on the table yet.',
+    question: 'Which card is generally the safest to discard?',
+    options: [
+      { text: 'A♠ — discard the highest-value card to keep your hand light' },
+      { text: '4♦ — low-value cards are safest to discard since they give opponents few points' },
+      { text: '2♥ — wild cards are common so you will draw another soon' },
+      { text: 'J♣ — medium-value cards are always the best discard' },
+    ],
+    correctIndex: 1,
+    explanation:
+      'Discarding a low-value card like the 4♦ (worth only 5 pts) is the safest choice. It gives your opponent the least benefit if they pick up the pile. Wild cards (2♥) are precious and should be kept. High-value Aces help meet meld minimums. Discarding low-ranked cards that are hard to meld is a fundamental Canasta strategy.',
+  },
+  {
+    id: 'meld-start-wild',
+    title: 'Starting a meld — wild card rule',
+    description: 'Can you meld these cards?',
+    icon: '🃏',
+    instructions:
+      'You want to start a brand-new meld using only wild cards. You hold two jokers and no natural cards of any matching rank.\n\nRule: A valid meld must contain at least 2 natural cards of the same rank. Wild cards can supplement a meld but cannot form one on their own.',
+    question: 'Can you start a new meld using only two jokers?',
+    options: [
+      { text: 'Yes — two jokers count as any rank, so they form a valid 2-card meld' },
+      { text: 'Yes — wild cards are always legal starters for any meld' },
+      { text: 'No — a meld must contain at least 2 natural (non-wild) cards of the same rank' },
+      { text: 'No — you need at least 3 jokers to start a meld with wilds' },
+    ],
+    correctIndex: 2,
+    explanation:
+      'A meld must always include at least 2 natural cards of the same rank. Wild cards (jokers and 2s) can be added to supplement a meld but cannot form a meld by themselves. You must first have 2 or more matching natural cards before adding any wilds.',
+  },
 ]
 
 export function getScenarioById(id: string): Scenario | undefined {

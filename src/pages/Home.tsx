@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { Onboarding, isOnboardingDone } from '../components/Onboarding'
+import { ChangelogModal } from '../components/ChangelogModal'
+import { shouldShowChangelog } from '../game/changelogVersion'
 
 const NAV_ITEMS = [
   { label: 'Learn', route: '/learn', icon: '📖', description: 'Interactive lessons for every Canasta rule' },
@@ -13,11 +15,15 @@ const NAV_ITEMS = [
 
 export function Home() {
   const [showOnboarding, setShowOnboarding] = useState(() => !isOnboardingDone())
+  const [showChangelog, setShowChangelog] = useState(() => isOnboardingDone() && shouldShowChangelog())
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
       {showOnboarding && (
         <Onboarding onComplete={() => setShowOnboarding(false)} />
+      )}
+      {!showOnboarding && showChangelog && (
+        <ChangelogModal onClose={() => setShowChangelog(false)} />
       )}
 
       <div className="max-w-2xl mx-auto px-4 py-12">
