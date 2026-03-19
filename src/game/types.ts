@@ -151,4 +151,4 @@ export interface PlayerStats {
   history: GameRecord[] // capped at last 100 games
 }
 
-export type AIDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert'
+export type AIDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'neural'

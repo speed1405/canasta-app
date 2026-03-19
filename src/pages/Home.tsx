@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { label: 'Practice', route: '/practice', icon: '🎯', description: 'Curated scenario drills with instant feedback' },
   { label: 'Play', route: '/play', icon: '🎮', description: 'Full games vs. AI — 2-player or 3-player' },
   { label: 'Multiplayer', route: '/lobby', icon: '🌐', description: 'Play online against real people' },
+  { label: 'Tournaments', route: '/tournaments', icon: '🏆', description: 'Compete in round-robin or bracket tournaments' },
+  { label: 'Leaderboards', route: '/leaderboards', icon: '🏅', description: 'Global Elo rankings by variant' },
   { label: 'Reference', route: '/reference', icon: '📋', description: 'Quick rules & scoring cheat sheet' },
   { label: 'Stats', route: '/stats', icon: '📊', description: 'Your personal game history & statistics' },
   { label: 'Settings', route: '/settings', icon: '⚙️', description: 'Sound, animations, and theme preferences' },

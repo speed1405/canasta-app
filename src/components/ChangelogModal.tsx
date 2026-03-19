@@ -8,6 +8,16 @@ interface ChangelogEntry {
 
 const ENTRIES: ChangelogEntry[] = [
   {
+    version: '1.5.0',
+    date: 'March 2026',
+    changes: [
+      '✨ New: Neural AI difficulty — next-generation AI with aggressive pile grabs and near-perfect discard strategy',
+      '🏆 New: Tournaments — create and join round-robin or single-elimination bracket tournaments',
+      '🏅 New: Global Leaderboards — Elo-rated rankings for overall play and each game variant',
+      '📊 Elo rating system — your rating updates after every multiplayer and tournament match',
+    ],
+  },
+  {
     version: '1.4.0',
     date: 'March 2026',
     changes: [

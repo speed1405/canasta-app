@@ -18,6 +18,9 @@ const Profile = lazy(() => import('../pages/Profile').then((m) => ({ default: m.
 const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })))
 const Lobby = lazy(() => import('../pages/Lobby').then((m) => ({ default: m.Lobby })))
 const MultiplayerGame = lazy(() => import('../pages/MultiplayerGame').then((m) => ({ default: m.MultiplayerGame })))
+const Tournaments = lazy(() => import('../pages/Tournaments').then((m) => ({ default: m.Tournaments })))
+const TournamentView = lazy(() => import('../pages/TournamentView').then((m) => ({ default: m.TournamentView })))
+const Leaderboards = lazy(() => import('../pages/Leaderboards').then((m) => ({ default: m.Leaderboards })))
 
 function RouteLoading() {
   return (
@@ -49,6 +52,9 @@ export function AppRouter() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/lobby" element={<Lobby />} />
           <Route path="/lobby/:roomId" element={<MultiplayerGame />} />
+          <Route path="/tournaments" element={<Tournaments />} />
+          <Route path="/tournaments/:tournamentId" element={<TournamentView />} />
+          <Route path="/leaderboards" element={<Leaderboards />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

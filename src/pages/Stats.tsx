@@ -12,7 +12,7 @@ import {
 } from '../game/stats'
 import type { AIDifficulty } from '../game/types'
 
-const DIFFICULTIES: AIDifficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert']
+const DIFFICULTIES: AIDifficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert', 'neural']
 
 export function Stats() {
   const [stats, setStats] = useState(() => loadStats())
