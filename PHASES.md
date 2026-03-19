@@ -516,50 +516,50 @@ community for Canasta enthusiasts.
 ### Tasks
 
 **Friends system**
-- [ ] Implement friend requests: send by username or shareable link; accept/decline.
-- [ ] Friends list on the profile page with online/in-game status indicators.
-- [ ] "Challenge a friend" shortcut: creates a private multiplayer room pre-filled with
+- [x] Implement friend requests: send by username or shareable link; accept/decline.
+- [x] Friends list on the profile page with online/in-game status indicators.
+- [x] "Challenge a friend" shortcut: creates a private multiplayer room pre-filled with
   the friend's user ID.
 - [ ] Push notifications (web push) for friend requests and game invitations.
 
 **Game replays**
-- [ ] Record the full action log of every multiplayer and AI game to the cloud.
-- [ ] Build a replay viewer (`/replay/:gameId`): step through turns forward and backward;
+- [x] Record the full action log of every multiplayer and AI game to the cloud.
+- [x] Build a replay viewer (`/replay/:gameId`): step through turns forward and backward;
   display each player's hand, melds, and discard-pile state at every point in the game.
-- [ ] Allow players to share a replay link publicly or with friends only.
+- [x] Allow players to share a replay link publicly or with friends only.
 - [ ] Add optional AI commentary in the replay viewer: highlight turning-point moments and
   explain why the optimal move differs from the one played.
 
 **Achievements**
-- [ ] Design an achievement system with at least 30 achievements, covering:
+- [x] Design an achievement system with at least 30 achievements, covering:
   - Milestones (first win, 10 wins, 100 wins, first canasta, first concealed go-out, etc.).
   - Skill-based (win against Expert AI, win a match without the hint button, complete all
     lessons, complete all practice drills, etc.).
   - Social (play with 3 different friends, win a tournament, etc.).
-- [ ] Display earned achievements on the profile page with unlock date.
-- [ ] Show an achievement-earned toast notification in-game at the moment of unlock.
+- [x] Display earned achievements on the profile page with unlock date.
+- [x] Show an achievement-earned toast notification in-game at the moment of unlock.
 
 **Custom card themes**
-- [ ] Implement a card theme system: card back designs and face-card illustration styles
+- [x] Implement a card theme system: card back designs and face-card illustration styles
   can be swapped via a theme pack.
-- [ ] Ship at least 3 built-in themes (Classic, Minimalist, and one festive theme).
+- [x] Ship at least 3 built-in themes (Classic, Minimalist, and one festive theme).
 - [ ] Allow community-contributed themes submitted as pull requests (SVG card sheet +
   `theme.json` manifest).
 
 **Daily & weekly challenges**
-- [ ] Generate a "Daily challenge" scenario automatically each day (seeded from the date
+- [x] Generate a "Daily challenge" scenario automatically each day (seeded from the date
   so every player plays the same hand).
-- [ ] Publish weekly strategy challenge: a complex hand where players compete for the
+- [x] Publish weekly strategy challenge: a complex hand where players compete for the
   highest score.
-- [ ] Display a global challenge leaderboard for the current day/week.
+- [x] Display a global challenge leaderboard for the current day/week.
 
 ### Exit Criteria
 
-- Friend request, accept, and challenge flow works end-to-end between two test accounts.
-- A complete AI game replay can be stepped through without errors or desync.
-- At least 30 achievements implemented; achievement toast fires at correct game events.
-- Three built-in card themes selectable in Settings; theme persists across sessions.
-- Daily challenge is unique per calendar day and identical for all players.
+- [x] Friend request, accept, and challenge flow works end-to-end between two test accounts.
+- [x] A complete AI game replay can be stepped through without errors or desync.
+- [x] At least 30 achievements implemented; achievement toast fires at correct game events.
+- [x] Three built-in card themes selectable in Settings; theme persists across sessions.
+- [x] Daily challenge is unique per calendar day and identical for all players.
 
 ---
 

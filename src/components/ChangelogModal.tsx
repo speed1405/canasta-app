@@ -8,6 +8,17 @@ interface ChangelogEntry {
 
 const ENTRIES: ChangelogEntry[] = [
   {
+    version: '1.6.0',
+    date: 'March 2026',
+    changes: [
+      '👫 New: Friends System — add friends by user ID, accept/decline requests, and see their online status on your Profile page',
+      '🏅 New: Achievements — 30+ achievements covering milestones, skill challenges, and social goals; unlocked badges shown on your Profile',
+      '🎬 New: Game Replays — step through any completed game turn-by-turn and share replays publicly or with friends',
+      '🃏 New: Card Themes — choose from Classic, Minimalist, or Festive card styles in Settings',
+      '⚡ New: Daily & Weekly Challenges — every player gets the same seeded hand; compete on the global leaderboard',
+    ],
+  },
+  {
     version: '1.5.0',
     date: 'March 2026',
     changes: [
