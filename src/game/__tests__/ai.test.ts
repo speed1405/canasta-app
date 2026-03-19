@@ -3,7 +3,7 @@ import { getAIAction } from '../ai'
 import { initGame } from '../gameEngine'
 import type { AIDifficulty } from '../types'
 
-const DIFFICULTIES: AIDifficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert']
+const DIFFICULTIES: AIDifficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert', 'neural']
 
 describe('getAIAction — draw phase', () => {
   it.each(DIFFICULTIES)(
@@ -128,4 +128,18 @@ describe('getAIAction — all difficulties return valid structure', () => {
       expect(meldAction).toHaveProperty('type')
     },
   )
+})
+
+describe('neural difficulty', () => {
+  it('returns valid draw-phase action', () => {
+    const { state } = initGame('2p', 'neural', 2)
+    const action = getAIAction({ ...state, currentPlayerIndex: 1 }, 'neural')
+    expect(['drawStock', 'pickUpPile']).toContain(action.type)
+  })
+
+  it('returns valid meld-phase action', () => {
+    const { state } = initGame('2p', 'neural', 2)
+    const action = getAIAction({ ...state, currentPlayerIndex: 1, phase: 'meld' as const }, 'neural')
+    expect(['placeMeld', 'addToMeld', 'discard', 'goOut']).toContain(action.type)
+  })
 })

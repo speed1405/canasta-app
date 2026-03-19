@@ -9,6 +9,7 @@ const DIFFICULTIES: { value: AIDifficulty; label: string; description: string }[
   { value: 'medium', label: 'Medium', description: 'Builds canastas, avoids bad discards — genuine challenge' },
   { value: 'hard', label: 'Hard', description: 'Card-counting, pile control — tactical play' },
   { value: 'expert', label: 'Expert', description: 'Tournament-strength AI — minimax + Bayesian hand model' },
+  { value: 'neural', label: 'Neural ✨', description: 'Next-generation AI — aggressive pile grabs, no wild discards, near-perfect play' },
 ]
 
 const VARIANTS: { value: Variant; label: string; description: string }[] = [

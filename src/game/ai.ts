@@ -66,6 +66,15 @@ function getDrawAction(
       }
       return { type: 'drawStock' }
     }
+
+    case 'neural': {
+      // Neural AI: always takes the pile when it's strategically beneficial,
+      // using the most aggressive heuristic (min 2 matching cards or existing meld).
+      if (pileAllowed && isPileWorthTaking(state, player, 2, partner)) {
+        return { type: 'pickUpPile' }
+      }
+      return { type: 'drawStock' }
+    }
   }
 }
 
@@ -295,6 +304,15 @@ function chooseDiscard(player: Player, difficulty: AIDifficulty): string {
   if ((difficulty === 'hard' || difficulty === 'expert') && Math.random() < 0.15) {
     const wildCard = discardable.find(isWild)
     if (wildCard) return wildCard.id
+  }
+
+  // neural: discard black 3s first (optimal pile blocking), then lowest-usefulness card
+  if (difficulty === 'neural') {
+    const black3 = discardable.find(isBlack3)
+    if (black3) return black3.id
+    // Avoid discarding wilds or cards that match existing melds
+    const nonWildScored = scored.filter(s => !isWild(s.card))
+    if (nonWildScored.length > 0) return nonWildScored[0].card.id
   }
 
   return scored[0].card.id
