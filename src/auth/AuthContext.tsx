@@ -52,14 +52,15 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  // Start loading=true only when Firebase is configured; otherwise we know
+  // immediately that there is no authenticated user.
+  const [loading, setLoading] = useState(() => getFirebaseAuth() !== null)
 
   // Subscribe to Firebase auth state changes.
   // When Firebase is not configured we immediately resolve with no user.
   useEffect(() => {
     const auth = getFirebaseAuth()
     if (!auth) {
-      setLoading(false)
       return
     }
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -137,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')

@@ -87,6 +87,7 @@ export function Challenges() {
   const [loadingLbs, setLoadingLbs] = useState(true)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingLbs(true)
     Promise.all([
       getChallengeLeaderboard(daily.id),
