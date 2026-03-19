@@ -24,6 +24,7 @@ const MENU_SECTIONS: MenuSection[] = [
       { label: 'Play vs AI', route: '/play', icon: '🎮', description: 'Full games vs. AI — 2-player or 3-player' },
       { label: 'Multiplayer', route: '/lobby', icon: '🌐', description: 'Play online against real people' },
       { label: 'Tournaments', route: '/tournaments', icon: '🏆', description: 'Compete in round-robin or bracket tournaments' },
+      { label: 'Watch AI Play', route: '/spectator', icon: '👁️', description: 'Spectator mode — watch AI vs AI with live commentary' },
     ],
   },
   {

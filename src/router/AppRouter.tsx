@@ -23,6 +23,7 @@ const TournamentView = lazy(() => import('../pages/TournamentView').then((m) => 
 const Leaderboards = lazy(() => import('../pages/Leaderboards').then((m) => ({ default: m.Leaderboards })))
 const Replay = lazy(() => import('../pages/Replay').then((m) => ({ default: m.Replay })))
 const Challenges = lazy(() => import('../pages/Challenges').then((m) => ({ default: m.Challenges })))
+const Spectator = lazy(() => import('../pages/Spectator').then((m) => ({ default: m.Spectator })))
 
 function RouteLoading() {
   return (
@@ -59,6 +60,7 @@ export function AppRouter() {
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/replay/:gameId" element={<Replay />} />
           <Route path="/challenges" element={<Challenges />} />
+          <Route path="/spectator" element={<Spectator />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
