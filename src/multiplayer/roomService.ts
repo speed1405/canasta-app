@@ -16,6 +16,7 @@ import type { GameState, Variant } from '../game/types'
 import { filterText } from './profanityFilter'
 
 const ROOMS_COL = 'multiplayerRooms'
+const MAX_CHAT_MESSAGES = 50
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -201,7 +202,7 @@ export async function sendChatMessage(
   const snap = await getDoc(doc(db, ROOMS_COL, roomId))
   if (!snap.exists()) return
   const room = snap.data() as MultiplayerRoom
-  const chat = [...room.chat, { ...message, text: filterText(message.text) }].slice(-50)
+  const chat = [...room.chat, { ...message, text: filterText(message.text) }].slice(-MAX_CHAT_MESSAGES)
   await updateDoc(doc(db, ROOMS_COL, roomId), { chat, updatedAt: Date.now() })
 }
 

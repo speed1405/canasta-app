@@ -14,8 +14,8 @@ const ENTRIES: ChangelogEntry[] = [
       '🌐 New: Online Multiplayer — play against real people with a shareable 6-character room code!',
       '⏱️ Turn timer — 60-second countdown per turn; auto-discards on timeout',
       '💬 In-game chat — send messages to opponents during a match (profanity filter applied)',
-      '🔌 Disconnection handling — shows reconnect countdown; AI takes over after 2 minutes',
-      '🏆 Multiplayer game records saved to your profile',
+      '🔌 Disconnection detection — shows reconnect indicator when a player goes offline',
+      '📊 Post-game summary with scores shown after each multiplayer match',
     ],
   },
   {

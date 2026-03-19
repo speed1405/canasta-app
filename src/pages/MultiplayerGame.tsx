@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { subscribeToRoom, submitAction, sendChatMessage, updateRoomGameState } from '../multiplayer/roomService'
 import type { MultiplayerRoom, MultiplayerAction, ChatMessage } from '../multiplayer/types'
-import type { GameState } from '../game/types'
 import {
   applyDrawFromStock,
   applyPickUpPile,
@@ -12,7 +11,6 @@ import {
 } from '../game/gameEngine'
 import { useGameStore } from '../store/gameStore'
 
-const TURN_TIMEOUT_MS = 60_000
 const DISCONNECT_THRESHOLD_MS = 30_000
 
 // ─── MultiplayerGame (used both as a standalone route and embedded) ───────────
@@ -35,8 +33,6 @@ export function MultiplayerGame({ room: propRoom, myUid: propMyUid, roomId: prop
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
-  const gameState = useGameStore(s => s.gameState)
-
   // Subscribe to room updates
   useEffect(() => {
     if (!effectiveRoomId) return
@@ -47,30 +43,36 @@ export function MultiplayerGame({ room: propRoom, myUid: propMyUid, roomId: prop
   }, [effectiveRoomId])
 
   // Sync game state from Firestore into store when host updates it
-  const setGameStateFromFirestore = useCallback((gs: GameState) => {
-    useGameStore.setState({ gameState: gs })
-  }, [])
-
   useEffect(() => {
     if (room?.gameState) {
-      setGameStateFromFirestore(room.gameState)
+      useGameStore.setState({ gameState: room.gameState })
     }
-  }, [room?.gameState, setGameStateFromFirestore])
+  }, [room?.gameState])
 
-  // Turn timer
+  // Turn timer — reset when it becomes our turn
   const myIndex = room?.players.findIndex(p => p.uid === effectiveMyUid) ?? -1
   const isMyTurn = room != null && room.currentPlayerIndex === myIndex
 
+  // Keep a ref to the latest room so timer callback doesn't stale-close
+  const roomRef = useRef<MultiplayerRoom | null>(null)
+  roomRef.current = room
+
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current)
-    if (!isMyTurn || !room || room.status !== 'in-progress') return
+    if (!isMyTurn) return
 
     setTurnSecondsLeft(60)
     timerRef.current = setInterval(() => {
       setTurnSecondsLeft(prev => {
         if (prev <= 1) {
-          // Auto-discard first card
-          autoDiscard()
+          // Auto-discard first card using fresh ref
+          const currentRoom = roomRef.current
+          if (currentRoom?.gameState && effectiveRoomId) {
+            const currentPlayer = currentRoom.gameState.players[currentRoom.currentPlayerIndex]
+            if (currentPlayer && currentPlayer.hand.length > 0) {
+              submitAction(effectiveRoomId, { type: 'discard', cardId: currentPlayer.hand[0].id }).catch(() => null)
+            }
+          }
           return 0
         }
         return prev - 1
@@ -80,25 +82,18 @@ export function MultiplayerGame({ room: propRoom, myUid: propMyUid, roomId: prop
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMyTurn, myIndex, room?.currentPlayerIndex])
-
-  function autoDiscard() {
-    if (!room?.gameState || !effectiveRoomId) return
-    const currentPlayer = room.gameState.players[room.currentPlayerIndex]
-    if (!currentPlayer || currentPlayer.hand.length === 0) return
-    const cardId = currentPlayer.hand[0].id
-    submitAction(effectiveRoomId, { type: 'discard', cardId }).catch(() => null)
-  }
+  }, [isMyTurn, effectiveRoomId])
 
   // Host processes pending actions
   const isHost = room?.hostId === effectiveMyUid
+  const pendingAction = room?.pendingAction
+  const currentGameState = room?.gameState
 
   useEffect(() => {
-    if (!isHost || !room?.pendingAction || !room.gameState || !effectiveRoomId) return
+    if (!isHost || !pendingAction || !currentGameState || !effectiveRoomId) return
 
-    const action = room.pendingAction
-    let newState = room.gameState
+    const action = pendingAction
+    let newState = currentGameState
 
     try {
       switch (action.type) {
@@ -121,16 +116,18 @@ export function MultiplayerGame({ room: propRoom, myUid: propMyUid, roomId: prop
             action.meldIndex,
           )
           break
-        case 'discard':
-          newState = applyDiscard(newState, action.cardId)
+        case 'discard': {
+          const actingPlayerId = newState.players[newState.currentPlayerIndex]?.id ?? ''
+          newState = applyDiscard(newState, actingPlayerId, action.cardId)
           break
+        }
       }
     } catch {
       // Invalid action — just clear the pending action
     }
 
     updateRoomGameState(effectiveRoomId, newState, newState.currentPlayerIndex).catch(() => null)
-  }, [isHost, room?.pendingAction, effectiveRoomId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isHost, pendingAction, currentGameState, effectiveRoomId])
 
   // Chat
   useEffect(() => {
@@ -210,6 +207,8 @@ export function MultiplayerGame({ room: propRoom, myUid: propMyUid, roomId: prop
 
   // Build a Map for O(1) player game state lookup
   const gsPlayerMap = new Map(currentGs?.players.map(p => [p.id, p]) ?? [])
+  // Snapshot now once for disconnection checks rather than calling Date.now() per player in the loop
+  const nowMs = Date.now()
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col">
@@ -242,7 +241,7 @@ export function MultiplayerGame({ room: propRoom, myUid: propMyUid, roomId: prop
           {/* Player seats */}
           <div className="space-y-3 mb-6">
             {room.players.map((p, i) => {
-              const isDisconnected = Date.now() - p.lastSeen > DISCONNECT_THRESHOLD_MS
+              const isDisconnected = nowMs - p.lastSeen > DISCONNECT_THRESHOLD_MS
               const isCurrent = room.currentPlayerIndex === i
               const playerGs = gsPlayerMap.get(p.uid)
               const handCount = playerGs?.hand.length ?? 0
