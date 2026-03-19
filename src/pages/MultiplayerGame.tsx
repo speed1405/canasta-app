@@ -208,6 +208,7 @@ export function MultiplayerGame({ room: propRoom, myUid: propMyUid, roomId: prop
   // Build a Map for O(1) player game state lookup
   const gsPlayerMap = new Map(currentGs?.players.map(p => [p.id, p]) ?? [])
   // Snapshot now once for disconnection checks rather than calling Date.now() per player in the loop
+  // eslint-disable-next-line react-hooks/purity
   const nowMs = Date.now()
 
   return (
