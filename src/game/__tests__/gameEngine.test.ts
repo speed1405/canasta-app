@@ -307,6 +307,47 @@ describe('applyDiscard', () => {
     const result = applyDiscard(injected, 'human', red3.id)
     expect(result).toBe(injected) // no change
   })
+
+  it('discarding a black 3 blocks the pile for the next player', () => {
+    const { state } = initGame('2p', 'easy', 2)
+    const meldState = { ...state, phase: 'meld' as const }
+    // Inject a black 3 into the human player's hand
+    const black3: Card = makeCard('3', 'spades', 99)
+    const players = meldState.players.map((p, i) =>
+      i === 0 ? { ...p, hand: [black3, ...p.hand] } : p,
+    )
+    const injected = { ...meldState, players }
+    const afterDiscard = applyDiscard(injected, 'human', black3.id)
+    // After Player 0 discards a black 3, the pile must still be blocked for Player 1
+    expect(afterDiscard.pile.blockedOneTurn).toBe(true)
+  })
+
+  it('blocked pile clears after next player discards a non-black-3', () => {
+    const { state } = initGame('2p', 'easy', 2)
+    const meldState = { ...state, phase: 'meld' as const }
+    // Inject a black 3 into Player 0's hand
+    const black3: Card = makeCard('3', 'spades', 99)
+    const playersP0 = meldState.players.map((p, i) =>
+      i === 0 ? { ...p, hand: [black3, ...p.hand] } : p,
+    )
+    const afterBlack3 = applyDiscard({ ...meldState, players: playersP0 }, 'human', black3.id)
+    expect(afterBlack3.pile.blockedOneTurn).toBe(true)
+
+    // Now Player 1 draws and discards a normal card
+    const afterDraw = applyDrawFromStock(afterBlack3)
+    // Ensure Player 1 has a non-black-3 card to discard
+    const p1 = afterDraw.players[1]
+    const normalCard = p1.hand.find(
+      c => c.rank !== '3' || (c.suit !== 'spades' && c.suit !== 'clubs'),
+    )!
+    const afterP1Discard = applyDiscard(
+      { ...afterDraw, phase: 'meld' as const },
+      'ai-1',
+      normalCard.id,
+    )
+    // Pile should no longer be blocked for Player 0's next turn
+    expect(afterP1Discard.pile.blockedOneTurn).toBe(false)
+  })
 })
 
 // ─── applyEndRound ────────────────────────────────────────────────────────────
