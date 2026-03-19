@@ -84,11 +84,14 @@ export function Challenges() {
 
   const [dailyLb, setDailyLb] = useState<ChallengeLeaderboard | null>(null)
   const [weeklyLb, setWeeklyLb] = useState<ChallengeLeaderboard | null>(null)
-  const [loadingLbs, setLoadingLbs] = useState(true)
+  // Track which challenge IDs we've loaded data for so loading can be derived
+  // without calling setState synchronously at the start of an effect.
+  const [loadedKey, setLoadedKey] = useState<string | null>(null)
+
+  const loadingLbs = loadedKey !== `${daily.id}_${weekly.id}`
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoadingLbs(true)
+    const key = `${daily.id}_${weekly.id}`
     Promise.all([
       getChallengeLeaderboard(daily.id),
       getChallengeLeaderboard(weekly.id),
@@ -96,12 +99,13 @@ export function Challenges() {
       .then(([d, w]) => {
         setDailyLb(d)
         setWeeklyLb(w)
+        setLoadedKey(key)
       })
       .catch(() => {
         setDailyLb({ challengeId: daily.id, entries: [] })
         setWeeklyLb({ challengeId: weekly.id, entries: [] })
+        setLoadedKey(key)
       })
-      .finally(() => setLoadingLbs(false))
   }, [daily.id, weekly.id])
 
   return (

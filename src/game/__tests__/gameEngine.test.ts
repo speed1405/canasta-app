@@ -104,20 +104,26 @@ describe('initGame', () => {
 describe('applyDrawFromStock', () => {
   it('adds 2 cards to the current player hand', () => {
     const { state } = initGame('2p', 'easy', 2)
-    const newState = applyDrawFromStock(state)
-    // hand + red3s increases by exactly 2 (red 3s are replaced from stock)
-    const handIncrease =
-      newState.players[0].hand.length +
-      newState.players[0].red3s.length -
-      (state.players[0].hand.length + state.players[0].red3s.length)
+    // Inject 2 known non-red-3 cards at the top of the stock so the result is
+    // deterministic regardless of the random shuffle.
+    const c1 = makeCard('7', 'spades', 997)
+    const c2 = makeCard('8', 'clubs', 998)
+    const knownState = { ...state, stock: [c1, c2, ...state.stock] }
+    const newState = applyDrawFromStock(knownState)
+    // hand.length increases by exactly 2 (the 2 injected non-red-3 cards)
+    const handIncrease = newState.players[0].hand.length - knownState.players[0].hand.length
     expect(handIncrease).toBe(2)
   })
 
   it('removes 2 cards from the stock', () => {
     const { state } = initGame('2p', 'easy', 2)
-    const stockBefore = state.stock.length
-    const newState = applyDrawFromStock(state)
-    // Stock decreases by 2 (± replacements for red 3s cancel out)
+    // Inject 2 known non-red-3 cards at the top of the stock so no replacement
+    // draws occur and the stock decrease is exactly 2.
+    const c1 = makeCard('7', 'spades', 997)
+    const c2 = makeCard('8', 'clubs', 998)
+    const knownState = { ...state, stock: [c1, c2, ...state.stock] }
+    const stockBefore = knownState.stock.length
+    const newState = applyDrawFromStock(knownState)
     const stockDecrease = stockBefore - newState.stock.length
     expect(stockDecrease).toBe(2)
   })
