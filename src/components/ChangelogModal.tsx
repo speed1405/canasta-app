@@ -8,6 +8,17 @@ interface ChangelogEntry {
 
 const ENTRIES: ChangelogEntry[] = [
   {
+    version: '1.4.0',
+    date: 'March 2026',
+    changes: [
+      '🌐 New: Online Multiplayer — play against real people with a shareable 6-character room code!',
+      '⏱️ Turn timer — 60-second countdown per turn; auto-discards on timeout',
+      '💬 In-game chat — send messages to opponents during a match (profanity filter applied)',
+      '🔌 Disconnection handling — shows reconnect countdown; AI takes over after 2 minutes',
+      '🏆 Multiplayer game records saved to your profile',
+    ],
+  },
+  {
     version: '1.3.0',
     date: 'March 2026',
     changes: [

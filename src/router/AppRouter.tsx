@@ -16,6 +16,8 @@ const Register = lazy(() => import('../pages/Register').then((m) => ({ default: 
 const ForgotPassword = lazy(() => import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword })))
 const Profile = lazy(() => import('../pages/Profile').then((m) => ({ default: m.Profile })))
 const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })))
+const Lobby = lazy(() => import('../pages/Lobby').then((m) => ({ default: m.Lobby })))
+const MultiplayerGame = lazy(() => import('../pages/MultiplayerGame').then((m) => ({ default: m.MultiplayerGame })))
 
 function RouteLoading() {
   return (
@@ -45,6 +47,8 @@ export function AppRouter() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/lobby" element={<Lobby />} />
+          <Route path="/lobby/:roomId" element={<MultiplayerGame />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

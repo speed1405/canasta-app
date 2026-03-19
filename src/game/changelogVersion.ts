@@ -3,7 +3,7 @@
 const CHANGELOG_KEY = 'canasta_changelog_seen'
 
 /** The current app version — bump this string with each release to trigger the modal. */
-export const CURRENT_VERSION = '1.3.0'
+export const CURRENT_VERSION = '1.4.0'
 
 /** Returns true when the user has not yet seen the changelog for CURRENT_VERSION. */
 export function shouldShowChangelog(): boolean {
