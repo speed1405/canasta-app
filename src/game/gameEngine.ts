@@ -14,7 +14,6 @@ import {
   createPile,
   discardCard,
   pickUpPile as pickUpPileFromPile,
-  beginTurn,
 } from './pile'
 import { calculateRoundScore, calculatePartnershipTeamScore, canGoOut } from './scoring'
 import {
@@ -358,7 +357,7 @@ export function applyDiscard(
   return {
     ...state,
     players,
-    pile: beginTurn(updatedPile),
+    pile: updatedPile,
     currentPlayerIndex: nextIndex,
     phase: 'draw',
   }

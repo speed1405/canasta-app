@@ -19,8 +19,8 @@ export function topCard(pile: PileState): Card | null {
  * Discard a card onto the pile (immutably).
  *
  * - Discarding a wild card permanently freezes the pile.
- * - Discarding a black 3 blocks the pile for one turn.
- * - Clearing the one-turn block is handled in beginTurn().
+ * - Discarding a black 3 blocks the pile for one turn; discarding any other
+ *   card automatically clears the block (see `blockedOneTurn` assignment below).
  */
 export function discardCard(pile: PileState, card: Card): PileState {
   const frozen = pile.frozen || isWild(card)
