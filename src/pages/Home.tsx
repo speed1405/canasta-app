@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: 'Multiplayer', route: '/lobby', icon: '🌐', description: 'Play online against real people' },
   { label: 'Tournaments', route: '/tournaments', icon: '🏆', description: 'Compete in round-robin or bracket tournaments' },
   { label: 'Leaderboards', route: '/leaderboards', icon: '🏅', description: 'Global Elo rankings by variant' },
+  { label: 'Challenges', route: '/challenges', icon: '⚡', description: 'Daily & weekly challenges — same hand for everyone' },
   { label: 'Reference', route: '/reference', icon: '📋', description: 'Quick rules & scoring cheat sheet' },
   { label: 'Stats', route: '/stats', icon: '📊', description: 'Your personal game history & statistics' },
   { label: 'Settings', route: '/settings', icon: '⚙️', description: 'Sound, animations, and theme preferences' },

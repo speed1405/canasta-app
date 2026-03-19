@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { useAuth } from '../auth/AuthContext'
 import { saveCloudPreferences, loadCloudPreferences } from '../auth/cloudSync'
+import { getAvailableThemes, getSavedThemeId, saveThemeId, applyTheme, getThemeById } from '../themes/themeService'
 
 type AnimSpeed = 'off' | 'normal' | 'fast'
 type Theme = 'system' | 'light' | 'dark'
@@ -32,6 +33,8 @@ function savePrefs(prefs: Preferences): void {
 export function Settings() {
   const [prefs, setPrefs] = useState<Preferences>(loadPrefs)
   const { currentUser } = useAuth()
+  const [cardThemeId, setCardThemeId] = useState<string>(getSavedThemeId)
+  const cardThemes = getAvailableThemes()
 
   // Load cloud preferences when a user signs in
   useEffect(() => {
@@ -63,6 +66,12 @@ export function Settings() {
 
   function update<K extends keyof Preferences>(key: K, value: Preferences[K]) {
     setPrefs((p) => ({ ...p, [key]: value }))
+  }
+
+  function handleCardThemeChange(id: string) {
+    setCardThemeId(id)
+    saveThemeId(id)
+    applyTheme(getThemeById(id))
   }
 
   return (
@@ -136,6 +145,27 @@ export function Settings() {
                 </button>
               )
             })}
+          </div>
+        </section>
+
+        {/* Card theme */}
+        <section aria-labelledby="card-theme-label">
+          <h2 id="card-theme-label" className="text-lg font-bold mb-4">Card theme</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {cardThemes.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => handleCardThemeChange(t.id)}
+                className={`py-3 rounded-xl border-2 font-semibold transition-colors ${
+                  cardThemeId === t.id
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                }`}
+                aria-pressed={cardThemeId === t.id}
+              >
+                <span aria-hidden="true">{t.icon}</span>{' '}{t.name}
+              </button>
+            ))}
           </div>
         </section>
 
