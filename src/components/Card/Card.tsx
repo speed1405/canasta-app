@@ -50,12 +50,13 @@ export function Card({ card, selected = false, faceDown = false, onClick, classN
   const baseClasses = [
     'relative inline-flex flex-col justify-between',
     'w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28',
-    'rounded-lg border border-slate-300',
+    'rounded-xl border border-slate-200',
     'font-bold text-xs sm:text-sm select-none',
-    'transition-transform duration-150',
-    faceDown ? 'bg-blue-800 border-blue-600' : 'bg-white',
-    selected && !faceDown ? 'ring-2 ring-yellow-400 -translate-y-2 shadow-lg' : '',
-    isInteractive ? 'cursor-pointer hover:-translate-y-1 hover:shadow-md active:translate-y-0' : '',
+    'transition-all duration-150',
+    'shadow-sm',
+    faceDown ? 'bg-gradient-to-br from-blue-700 to-blue-900 border-blue-500' : 'bg-white',
+    selected && !faceDown ? 'ring-2 ring-yellow-400 -translate-y-3 shadow-lg shadow-yellow-900/30' : '',
+    isInteractive ? 'cursor-pointer hover:-translate-y-1.5 hover:shadow-md active:translate-y-0' : '',
     disabled ? 'opacity-50 cursor-not-allowed' : '',
     className,
   ]
@@ -81,7 +82,9 @@ export function Card({ card, selected = false, faceDown = false, onClick, classN
             : undefined
         }
       >
-        <div className="absolute inset-1 rounded border border-blue-500 bg-blue-700 opacity-60" />
+        <div className="absolute inset-1.5 rounded-lg border border-blue-400/40 bg-blue-600/30 flex items-center justify-center">
+          <span className="text-blue-300/30 text-2xl font-bold select-none">♠</span>
+        </div>
       </div>
     )
   }

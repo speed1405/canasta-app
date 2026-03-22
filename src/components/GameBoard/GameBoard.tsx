@@ -176,19 +176,29 @@ export function GameBoard({ onExit }: Props) {
   return (
     <div className="flex flex-col h-screen bg-green-800 text-white overflow-hidden select-none">
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-3 py-2 bg-green-900/80 text-sm shrink-0">
+      <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-green-950 to-green-900 text-sm shrink-0 shadow-md">
         <button
           onClick={onExit}
-          className="text-green-300 hover:text-white transition-colors text-xs font-medium"
+          className="flex items-center gap-1 text-green-400 hover:text-white transition-colors text-xs font-medium rounded-lg px-2 py-1 hover:bg-white/10"
         >
-          ← Exit
+          <span aria-hidden="true">←</span> Exit
         </button>
-        <span className="font-semibold text-green-200">
-          Round {roundNum} · {difficulty}
-          {isPartnership && ' · Partnership'}
+        <span className="font-semibold text-green-200 text-xs sm:text-sm">
+          Round {roundNum}
+          <span className="text-green-500 mx-1">·</span>
+          <span className="capitalize">{difficulty}</span>
+          {isPartnership && <span className="text-green-500"> · Partnership</span>}
         </span>
-        <span className="text-xs text-green-400">
-          {isHumanTurn ? '🟢 Your turn' : `⏳ ${currentPlayer.name}`}
+        <span className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${
+          isHumanTurn
+            ? 'bg-green-500/20 text-green-300 pulse-glow'
+            : 'bg-yellow-500/15 text-yellow-300'
+        }`}>
+          {isHumanTurn ? (
+            <><span className="inline-block w-2 h-2 rounded-full bg-green-400" aria-hidden="true" />Your turn</>
+          ) : (
+            <><span className="inline-block w-2 h-2 rounded-full bg-yellow-400 animate-pulse" aria-hidden="true" />{currentPlayer.name}</>
+          )}
         </span>
       </div>
 
@@ -262,7 +272,7 @@ export function GameBoard({ onExit }: Props) {
       </div>
 
       {/* ── Centre: stock + discard ───────────────────────────────────── */}
-      <div className="shrink-0 flex items-start justify-center gap-6 py-3 bg-green-700/30">
+      <div className="shrink-0 flex items-start justify-center gap-8 py-3 bg-green-700/20 border-y border-green-600/20">
         {/* Stock */}
         <div className="flex flex-col items-center gap-1">
           <span className="text-xs text-green-300 font-medium">Stock</span>
@@ -272,14 +282,14 @@ export function GameBoard({ onExit }: Props) {
             aria-label={`Draw from stock (${gameState.stock.length} cards)`}
             className={[
               'relative w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28',
-              'rounded-lg border-2 transition-all',
+              'rounded-xl border-2 transition-all duration-200',
               canDraw
-                ? 'border-green-400 hover:border-yellow-400 hover:scale-105 cursor-pointer'
+                ? 'border-green-400 hover:border-yellow-400 hover:scale-105 hover:shadow-lg hover:shadow-green-900/50 cursor-pointer'
                 : 'border-slate-600 cursor-not-allowed opacity-50',
-              'bg-blue-900 flex items-center justify-center',
+              'bg-gradient-to-br from-blue-800 to-blue-950 flex items-center justify-center',
             ].join(' ')}
           >
-            <div className="absolute inset-1 rounded border border-blue-500 bg-blue-800 opacity-70" />
+            <div className="absolute inset-1.5 rounded-lg border border-blue-500/50 bg-blue-700/40" />
             <span className="relative z-10 text-white font-bold text-sm">
               {gameState.stock.length}
             </span>
@@ -297,16 +307,16 @@ export function GameBoard({ onExit }: Props) {
             disabled={!canPickUp}
             aria-label={`Pick up discard pile${topDiscard ? ` (top: ${topDiscard.rank})` : ''}`}
             className={[
-              'transition-all',
+              'transition-all duration-200',
               canPickUp
-                ? 'hover:scale-105 cursor-pointer'
+                ? 'hover:scale-105 hover:shadow-lg cursor-pointer'
                 : 'cursor-not-allowed opacity-80',
             ].join(' ')}
           >
             {topDiscard ? (
               <Card card={topDiscard} />
             ) : (
-              <div className="w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28 rounded-lg border-2 border-dashed border-slate-500 flex items-center justify-center text-slate-500 text-xs">
+              <div className="w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28 rounded-xl border-2 border-dashed border-slate-500/60 flex items-center justify-center text-slate-500 text-xs">
                 Empty
               </div>
             )}
@@ -317,15 +327,17 @@ export function GameBoard({ onExit }: Props) {
 
       {/* ── Error / Hint ─────────────────────────────────────────────── */}
       {(lastError || hint) && (
-        <div className="shrink-0 mx-3 my-1">
+        <div className="shrink-0 mx-3 my-1 animate-slide-up">
           {lastError && (
-            <div className="bg-red-900/70 border border-red-700 rounded-lg px-3 py-2 text-xs text-red-200">
-              ⚠️ {lastError}
+            <div className="bg-red-900/80 border border-red-600/60 rounded-xl px-3 py-2 text-xs text-red-200 flex items-start gap-2 shadow-sm">
+              <span aria-hidden="true" className="shrink-0 mt-0.5">⚠️</span>
+              <span>{lastError}</span>
             </div>
           )}
           {hint && !lastError && (
-            <div className="bg-blue-900/70 border border-blue-700 rounded-lg px-3 py-2 text-xs text-blue-200">
-              💡 {hint}
+            <div className="bg-blue-900/80 border border-blue-600/60 rounded-xl px-3 py-2 text-xs text-blue-200 flex items-start gap-2 shadow-sm">
+              <span aria-hidden="true" className="shrink-0 mt-0.5">💡</span>
+              <span>{hint}</span>
             </div>
           )}
         </div>
@@ -365,17 +377,19 @@ export function GameBoard({ onExit }: Props) {
 
       {/* ── Action buttons ────────────────────────────────────────────── */}
       {isHumanTurn && phase !== 'end' && (
-        <div className="shrink-0 bg-green-900/80 px-3 py-2 flex flex-wrap gap-2 justify-center">
+        <div className="shrink-0 bg-gradient-to-t from-green-950 to-green-900/80 px-3 py-3 flex flex-wrap gap-2 justify-center border-t border-green-700/40">
           {phase === 'draw' && (
             <>
               <ActionButton
                 label="Draw 2"
+                emoji="🃏"
                 onClick={drawFromStock}
                 disabled={!canDraw}
                 colour="blue"
               />
               <ActionButton
                 label="Pick Up Pile"
+                emoji="📥"
                 onClick={pickUpPile}
                 disabled={!canPickUp}
                 colour="amber"
@@ -387,18 +401,21 @@ export function GameBoard({ onExit }: Props) {
             <>
               <ActionButton
                 label="Meld"
+                emoji="✅"
                 onClick={placeMeld}
                 disabled={!canMeld}
                 colour="emerald"
               />
               <ActionButton
-                label={selectedMeldTarget ? `Add to Meld (${selectedMeldTarget.playerId})` : 'Add to Meld'}
+                label={selectedMeldTarget ? `Add to ${selectedMeldTarget.playerId === 'human' ? 'Your' : 'Their'} Meld` : 'Add to Meld'}
+                emoji="➕"
                 onClick={handleAddToMeld}
                 disabled={!canAddToMeld}
                 colour="teal"
               />
               <ActionButton
                 label="Discard"
+                emoji="🗑️"
                 onClick={discardSelected}
                 disabled={!canDiscard}
                 colour="rose"
@@ -406,6 +423,7 @@ export function GameBoard({ onExit }: Props) {
               {selectedCardIds.size > 0 && (
                 <ActionButton
                   label="Deselect"
+                  emoji="✕"
                   onClick={deselectAll}
                   disabled={false}
                   colour="slate"
@@ -416,6 +434,7 @@ export function GameBoard({ onExit }: Props) {
 
           <ActionButton
             label="Hint"
+            emoji="💡"
             onClick={requestHint}
             disabled={false}
             colour="violet"
@@ -468,22 +487,24 @@ export function GameBoard({ onExit }: Props) {
 type ButtonColour = 'blue' | 'amber' | 'emerald' | 'teal' | 'rose' | 'slate' | 'violet'
 
 const COLOUR_MAP: Record<ButtonColour, string> = {
-  blue: 'bg-blue-700 hover:bg-blue-600 disabled:bg-blue-900/50',
-  amber: 'bg-amber-700 hover:bg-amber-600 disabled:bg-amber-900/50',
-  emerald: 'bg-emerald-700 hover:bg-emerald-600 disabled:bg-emerald-900/50',
-  teal: 'bg-teal-700 hover:bg-teal-600 disabled:bg-teal-900/50',
-  rose: 'bg-rose-700 hover:bg-rose-600 disabled:bg-rose-900/50',
-  slate: 'bg-slate-600 hover:bg-slate-500 disabled:bg-slate-700/50',
-  violet: 'bg-violet-700 hover:bg-violet-600 disabled:bg-violet-900/50',
+  blue: 'bg-blue-700 hover:bg-blue-600 disabled:bg-blue-900/50 shadow-blue-900/30',
+  amber: 'bg-amber-700 hover:bg-amber-600 disabled:bg-amber-900/50 shadow-amber-900/30',
+  emerald: 'bg-emerald-700 hover:bg-emerald-600 disabled:bg-emerald-900/50 shadow-emerald-900/30',
+  teal: 'bg-teal-700 hover:bg-teal-600 disabled:bg-teal-900/50 shadow-teal-900/30',
+  rose: 'bg-rose-700 hover:bg-rose-600 disabled:bg-rose-900/50 shadow-rose-900/30',
+  slate: 'bg-slate-600 hover:bg-slate-500 disabled:bg-slate-700/50 shadow-slate-900/30',
+  violet: 'bg-violet-700 hover:bg-violet-600 disabled:bg-violet-900/50 shadow-violet-900/30',
 }
 
 function ActionButton({
   label,
+  emoji,
   onClick,
   disabled,
   colour,
 }: {
   label: string
+  emoji?: string
   onClick: () => void
   disabled: boolean
   colour: ButtonColour
@@ -493,11 +514,13 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className={[
-        'px-3 py-1.5 rounded-lg text-sm font-semibold text-white transition-colors',
-        'disabled:opacity-40 disabled:cursor-not-allowed',
+        'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white transition-all duration-150',
+        'shadow-sm hover:shadow-md hover:-translate-y-px active:translate-y-0',
+        'disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0',
         COLOUR_MAP[colour],
       ].join(' ')}
     >
+      {emoji && <span aria-hidden="true">{emoji}</span>}
       {label}
     </button>
   )
