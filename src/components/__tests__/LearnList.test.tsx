@@ -23,22 +23,22 @@ describe('LearnList', () => {
     expect(screen.getByText('Learn')).toBeTruthy()
   })
 
-  it('renders all 10 lesson titles', () => {
+  it('renders all lesson titles', () => {
     renderLearnList()
     for (const lesson of LESSONS) {
       expect(screen.getByText(lesson.title)).toBeTruthy()
     }
   })
 
-  it('shows 0 of 10 completed when no lessons are done', () => {
+  it('shows 0 of N completed when no lessons are done', () => {
     renderLearnList()
-    expect(screen.getByText(/0 of 10 lessons completed/i)).toBeTruthy()
+    expect(screen.getByText(new RegExp(`0 of ${LESSONS.length} lessons completed`, 'i'))).toBeTruthy()
   })
 
   it('shows progress when a lesson is completed', () => {
     markLessonComplete('intro')
     renderLearnList()
-    expect(screen.getByText(/1 of 10 lessons completed/i)).toBeTruthy()
+    expect(screen.getByText(new RegExp(`1 of ${LESSONS.length} lessons completed`, 'i'))).toBeTruthy()
   })
 
   it('shows completed badge on a done lesson', () => {
