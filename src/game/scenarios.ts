@@ -288,6 +288,132 @@ export const SCENARIOS: Scenario[] = [
     explanation:
       'A meld must always include at least 2 natural cards of the same rank. Wild cards (jokers and 2s) can be added to supplement a meld but cannot form a meld by themselves. You must first have 2 or more matching natural cards before adding any wilds.',
   },
+  {
+    id: 'joker-point-value',
+    title: 'Joker card value',
+    description: 'How many points is a joker worth?',
+    icon: '🤡',
+    instructions:
+      'At the end of a round, each card remaining in a player\'s hand subtracts from their score. Each card melded to the table adds to their score. You had a joker in your hand when the round ended — it was never melded.\n\nPoint values: Joker = 50 pts, Ace/2 = 20 pts, K–8 = 10 pts, 7–4 = 5 pts.',
+    question: 'How many points does the unmelded joker in your hand subtract from your round score?',
+    options: [
+      { text: '5 points' },
+      { text: '20 points' },
+      { text: '50 points' },
+      { text: '100 points' },
+    ],
+    correctIndex: 2,
+    explanation:
+      'A joker is worth 50 points. Cards still in hand at round end are subtracted from your score, so an unmelded joker costs you 50 points. This is the highest per-card penalty — always try to meld or discard jokers before the round ends.',
+  },
+  {
+    id: 'stock-depleted',
+    title: 'Stock pile runs out',
+    description: 'What happens when there are no more cards to draw?',
+    icon: '📭',
+    instructions:
+      'It is your turn and the stock pile is empty. You cannot draw from the stock. The discard pile has cards, but you are not able to pick it up (you do not hold matching cards).\n\nWhen the stock is depleted and a player cannot draw, the round ends immediately.',
+    question: 'What happens when the stock is exhausted and you cannot pick up the discard pile?',
+    options: [
+      { text: 'You skip your turn and play passes to the next player' },
+      { text: 'The round ends immediately and scores are tallied' },
+      { text: 'You must pick up the discard pile regardless of your hand' },
+      { text: 'Wild cards are reshuffled back into a new stock' },
+    ],
+    correctIndex: 1,
+    explanation:
+      'When the stock pile is exhausted and the current player cannot (or does not) pick up the discard pile, the round ends immediately. All players then score what they have melded on the table, and cards remaining in hand are subtracted.',
+  },
+  {
+    id: 'three-thousand-meld',
+    title: 'Opening at 3,000+ points',
+    description: 'What is the initial meld requirement at the top score bracket?',
+    icon: '💯',
+    instructions:
+      'Your team has accumulated 3,200 points — you are in the highest scoring bracket. You need to make your initial meld this turn. You hold: A♠ A♦ A♣ K♠ K♦ K♣ Q♠ Q♦ Q♣ J♠ J♦ 9♠ 9♦ 2♣ (wild).\n\nInitial meld thresholds: 0–1,499 pts → 50 pts; 1,500–2,999 pts → 90 pts; 3,000+ pts → 120 pts. Only natural card face values count toward the minimum.',
+    question: 'Which combination meets the 120-point minimum required to open at 3,000+ points?',
+    options: [
+      { text: 'Three Kings + three Queens (K♠ K♦ K♣ Q♠ Q♦ Q♣) = 60 pts — not enough' },
+      { text: 'Two Aces + three Kings (A♠ A♦ K♠ K♦ K♣) = 70 pts — not enough' },
+      { text: 'Three Aces + three Kings + three Queens (A♠ A♦ A♣ K♠ K♦ K♣ Q♠ Q♦ Q♣) = 120 pts — exactly meets the requirement' },
+      { text: 'Three Aces + two wild cards (A♠ A♦ A♣ 2♣ Joker) = 60 pts natural — not enough' },
+    ],
+    correctIndex: 2,
+    explanation:
+      'Three Aces (3 × 20 = 60 pts) + three Kings (3 × 10 = 30 pts) + three Queens (3 × 10 = 30 pts) = exactly 120 pts in natural card values, meeting the threshold. Wild cards do not count toward the minimum, so options relying on wilds to pad the value fall short. The 120-pt bar at 3,000+ pts requires committing multiple high-value natural cards.',
+  },
+  {
+    id: 'partner-says-no',
+    title: 'Partner vetoes going out',
+    description: 'Partner said "No" — what must you do?',
+    icon: '🚫',
+    instructions:
+      'You asked your partner "May I go out?" and they said "No." You were planning to meld your remaining cards and discard your last card to end the round. Your partner has a weak hand and wants more turns to build melds.\n\nRemember: once you ask and receive an answer, you are bound by it for that turn.',
+    question: 'Your partner said "No." What must you do for the rest of this turn?',
+    options: [
+      { text: 'Go out anyway — it is your decision once you have 2 canastas' },
+      { text: 'You cannot go out this turn; take a normal turn and play on' },
+      { text: 'You must skip your entire turn as a penalty for asking' },
+      { text: 'You can still go out if you meld concealed (without asking again)' },
+    ],
+    correctIndex: 1,
+    explanation:
+      'Once your partner says "No," you are bound by that answer for the current turn — you cannot go out this turn. You must play normally (meld if you like, then discard). On a future turn you can ask again. Ignoring your partner\'s answer is against the rules.',
+  },
+  {
+    id: 'all-four-red3s',
+    title: 'Collecting all four red 3s',
+    description: 'What bonus do you get for all four red 3s?',
+    icon: '🔴',
+    instructions:
+      'During the round, your team placed all four red 3s face-up on the table (3♥ and 3♦ from each of the two decks). Your team also has melds on the table.\n\nNormal red 3 value: 100 pts each. Bonus: collecting all four red 3s doubles the total value.',
+    question: 'What is the total bonus value of all four red 3s when your team has melded cards?',
+    options: [
+      { text: '400 pts (4 × 100 pts)' },
+      { text: '600 pts (4 × 150 pts)' },
+      { text: '800 pts (double the normal 400 pts)' },
+      { text: '1,000 pts (special jackpot bonus)' },
+    ],
+    correctIndex: 2,
+    explanation:
+      'All four red 3s together are worth 800 points — double the normal total of 400 pts (4 × 100). This doubling bonus only applies when your team collects all four. If your team has not melded anything, the red 3s become penalties (−100 pts each) rather than bonuses.',
+  },
+  {
+    id: 'add-to-opponent-meld',
+    title: 'Adding to an opponent\'s meld',
+    description: 'Can you extend their meld?',
+    icon: '🤝',
+    instructions:
+      'Your opponent has a meld of four natural Kings (K♠ K♦ K♣ K♥) on the table. You hold K♠ (a duplicate from the second deck) and want to add it to their Kings meld to benefit from the extra card value.',
+    question: 'Are you allowed to add your King to your opponent\'s existing meld?',
+    options: [
+      { text: 'Yes — any player can add matching cards to any meld on the table' },
+      { text: 'Yes — but only wild cards can be added to opponent melds' },
+      { text: 'No — you may only add cards to your own team\'s melds' },
+      { text: 'No — melds can never have more than 4 cards of the same rank' },
+    ],
+    correctIndex: 2,
+    explanation:
+      'You may only add cards to your own team\'s melds. Opponents\' melds are off-limits. This means you cannot "dump" cards onto an opponent\'s meld to reduce your hand size, and you cannot piggyback on their canastas.',
+  },
+  {
+    id: 'mixed-rank-meld',
+    title: 'Mixed-rank meld attempt',
+    description: 'Can cards of different ranks form a meld?',
+    icon: '🔀',
+    instructions:
+      'You hold K♠ K♦ Q♣. All three are face cards (worth 10 pts each) and they share a suit pattern. You want to lay them down as a 3-card meld since they "go together" as face cards.',
+    question: 'Can you form a valid meld with K♠ K♦ Q♣?',
+    options: [
+      { text: 'Yes — all face cards belong to the same group and can be melded together' },
+      { text: 'Yes — any three cards of the same point value form a valid meld' },
+      { text: 'No — a meld must contain cards of the same rank; Kings and Queens are different ranks' },
+      { text: 'No — melds must contain cards of the same suit' },
+    ],
+    correctIndex: 2,
+    explanation:
+      'A meld requires cards of the same rank (e.g., three Kings or three Queens). Different ranks cannot be mixed, even if they share the same point value. Suits are irrelevant — you can have K♠ K♦ K♣ across three different suits in the same meld, but you cannot combine Kings and Queens.',
+  },
 ]
 
 export function getScenarioById(id: string): Scenario | undefined {

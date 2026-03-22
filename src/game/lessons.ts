@@ -416,6 +416,135 @@ export const LESSONS: Lesson[] = [
       explanation: 'Aces are worth 20 points each (same as 2s). Kings through 8s are 10 pts; 7s through 4s are 5 pts.',
     },
   },
+  {
+    id: 'end-of-round',
+    title: 'End of Round',
+    description: 'Going out, stock depletion, and what triggers scoring',
+    steps: [
+      {
+        title: 'Two Ways a Round Ends',
+        icon: '🏁',
+        body: 'A round can end in exactly two ways:\n1. A player goes out (empties their hand after meeting all requirements).\n2. The stock pile runs out and no player can legally draw.\n\nIn both cases, play stops immediately and all players score what they have on the table.',
+      },
+      {
+        title: 'Stock Pile Exhaustion',
+        icon: '📭',
+        body: 'When the stock pile is empty, the current player may choose to pick up the discard pile if they legally can. If they cannot (or choose not to), the round ends right there. No further turns are taken.',
+      },
+      {
+        title: 'Unfinished Melds Still Count',
+        icon: '🃏',
+        body: 'At round end, every card your team has melded on the table scores its face value — even incomplete melds (fewer than 7 cards). Only completed canastas earn the 300 or 500-point bonus. Cards still in hand are subtracted.',
+      },
+      {
+        title: 'Cards Left in Hand',
+        icon: '✋',
+        body: 'Each card still in your hand at round end is a penalty equal to its face value. Jokers (50 pts each) and Aces (20 pts each) are the costliest to be caught holding. Try to meld or discard high-value cards before the round ends unexpectedly.',
+      },
+      {
+        title: 'Winning the Game',
+        icon: '🏆',
+        body: 'The game ends after any round in which a team\'s cumulative score reaches or exceeds 5,000 points. The team with the highest score at that point wins. If both teams cross 5,000 in the same round, the higher score wins.',
+      },
+    ],
+    quiz: {
+      question: 'The stock pile runs out on your turn and you cannot pick up the discard pile. What happens?',
+      options: [
+        { text: 'Play continues — you just skip drawing this turn' },
+        { text: 'The round ends immediately and all players score their melds' },
+        { text: 'Wild cards in the discard pile are reshuffled into a new stock' },
+        { text: 'You must pick up the discard pile regardless of your hand' },
+      ],
+      correctIndex: 1,
+      explanation: 'When the stock is empty and the current player cannot (or does not) draw from the discard pile, the round ends immediately. All players then score their melded cards and subtract cards remaining in hand.',
+    },
+  },
+  {
+    id: 'partnership',
+    title: 'Partnership Rules',
+    description: 'Team play, communication, and shared melds',
+    steps: [
+      {
+        title: 'Teams of Two',
+        icon: '👥',
+        body: 'In the classic 4-player game, players sit opposite their partner and form a 2-person team. Both partners share the same melds — cards melded by either partner go to the same table area and both players can add to them.',
+      },
+      {
+        title: 'Shared Melds and Canastas',
+        icon: '🤝',
+        body: 'Either partner can add cards to any of the team\'s melds. A canasta completed by either partner counts for the entire team. The team only needs one canasta between them to satisfy the going-out requirement.',
+      },
+      {
+        title: 'Communication Rules',
+        icon: '🤐',
+        body: 'Partners may NOT communicate the contents of their hands or give strategy advice during play. The only permitted question is "May I go out?" — and your partner must answer truthfully with only "Yes" or "No."',
+      },
+      {
+        title: 'Asking to Go Out',
+        icon: '🤔',
+        body: 'Before going out (except concealed going out), you must ask your partner "May I go out?" If they say yes, you must go out that turn. If they say no, you cannot go out that turn — but you may ask again on a future turn.',
+      },
+      {
+        title: 'Concealed Going Out',
+        icon: '🎩',
+        body: 'The one exception: concealed going out (melding everything in one turn from a previously unmelded hand) does NOT require asking your partner. You earn +200 pts for going out concealed instead of the usual +100 pts.',
+      },
+    ],
+    quiz: {
+      question: 'Your partner says "No" when you ask "May I go out?" What are you bound to do?',
+      options: [
+        { text: 'Go out anyway — it is your legal right once you have a canasta' },
+        { text: 'You cannot go out this turn; play normally and ask again next turn' },
+        { text: 'Skip your entire turn as a penalty for asking' },
+        { text: 'Discard without melding to show respect for your partner\'s decision' },
+      ],
+      correctIndex: 1,
+      explanation: 'Once your partner says "No," you are bound by that answer for the current turn and cannot go out. You must take a normal turn. You are free to ask again on any future turn.',
+    },
+  },
+  {
+    id: 'strategy',
+    title: 'Strategy & Tips',
+    description: 'Offensive, defensive, and hand-management tactics',
+    steps: [
+      {
+        title: 'Prioritise Wild Cards',
+        icon: '🃏',
+        body: 'Jokers and 2s are the most versatile cards in the game. Avoid discarding them unless you are freezing the pile defensively. Use wilds to complete melds faster or to reach a canasta when you are short on naturals.',
+      },
+      {
+        title: 'Build Multiple Melds',
+        icon: '📈',
+        body: 'Starting several melds of different ranks gives you more ways to use incoming cards. Avoid putting all your eggs in one basket — if you only build one meld, a good discard by your opponent may let them freeze the pile and stall your progress.',
+      },
+      {
+        title: 'Freeze the Pile Defensively',
+        icon: '🧊',
+        body: 'Discarding a wild card freezes the discard pile, making it much harder for opponents to pick it up. This is most valuable when the pile is large and your opponent is close to picking it up. Weigh the cost of losing a wild against the defensive benefit.',
+      },
+      {
+        title: 'Safe Discards',
+        icon: '🎯',
+        body: 'Discard cards that are hard to meld and have low point value. Cards ranked 4–7 (worth 5 pts) are ideal throwaways. Avoid discarding ranks your opponent recently discarded — they likely don\'t want those ranks either, and you will be giving them nothing. Avoid discarding ranks you know your opponent needs.',
+      },
+      {
+        title: 'Timing Your Going Out',
+        icon: '⏰',
+        body: 'Going out early with minimal melds scores a smaller round win. Staying in longer lets you build more canastas and card points — but risks your opponent going out first. Watch the stock pile size: if it is shrinking fast, complete canastas and position yourself to go out before the stock runs dry.',
+      },
+    ],
+    quiz: {
+      question: 'Which discard is generally safest when you have no information about your opponent\'s hand?',
+      options: [
+        { text: 'A joker — get rid of it before it costs you 50 pts in hand' },
+        { text: 'An ace — high-value cards are risky to hold' },
+        { text: 'A low-ranked natural card (e.g., a 4 or 5) with low point value' },
+        { text: 'A wild 2 — wilds are common so you will draw another soon' },
+      ],
+      correctIndex: 2,
+      explanation: 'Low-ranked natural cards (4s, 5s, 6s, 7s) are worth only 5 pts and are rarely what opponents need for melds. Discarding them gives opponents little benefit if they pick up the pile. Wild cards (jokers, 2s) and aces should generally be kept — they are far too valuable to throw away casually.',
+    },
+  },
 ]
 
 /** Look up a lesson by its ID string. Returns undefined if not found. */
